@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@CrossOrigin(origins = "*") // Allow all origins (for development)
 @RequestMapping("v1/api/health")
 public class HealthController {
 
