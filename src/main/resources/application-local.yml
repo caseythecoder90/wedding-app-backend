@@ -5,9 +5,9 @@ spring:
   application:
     name: wedding-backend
   datasource:
-    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
-    username: ${PGUSER}
-    password: ${PGPASSWORD}
+    url: jdbc:postgresql://localhost:5432/wedding-db
+    username: casquinn
+    password: bebopYasmim2025!
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
