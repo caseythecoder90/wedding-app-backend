@@ -7,8 +7,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "guests")
 public class Guest {
 
@@ -40,34 +42,6 @@ public class Guest {
         this.phone = builder.phone;
         this.plusOneAllowed = builder.plusOneAllowed;
         this.rsvp = builder.rsvp;
-    }
-
-    public Boolean getPlusOneAllowed() {
-        return plusOneAllowed;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public RSVP getRsvp() {
-        return rsvp;
     }
 
     // Builder class
@@ -112,5 +86,16 @@ public class Guest {
         public Guest build() {
             return new Guest(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return """
+                Guest:
+                    firstName: %s
+                    lastName: %s
+                    email: %s
+                    phone: %s
+                """.formatted(firstName, lastName, email, phone);
     }
 }

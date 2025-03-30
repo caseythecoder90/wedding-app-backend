@@ -8,9 +8,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.JoinColumn;
+import lombok.Data;
 
 import java.time.OffsetDateTime;
 
+@Data
 @Entity
 @Table(name = "rsvps")
 public class RSVP {
@@ -77,33 +79,5 @@ public class RSVP {
         public RSVP build() {
             return new RSVP(this);
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Guest getGuest() {
-        return guest;
-    }
-
-    public Boolean getAttending() {
-        return attending;
-    }
-
-    public Boolean getBringingPlusOne() {
-        return bringingPlusOne;
-    }
-
-    public String getPlusOneName() {
-        return plusOneName;
-    }
-
-    public String getDietaryRestrictions() {
-        return dietaryRestrictions;
-    }
-
-    public OffsetDateTime getSubmittedAt() {
-        return submittedAt;
     }
 }
