@@ -30,7 +30,7 @@ public class GuestDao {
             String phone,
             boolean plusOneAllowed) {
 
-        log.info("Creating and saving guest to DB");
+        log.info("GuestDao - Creating and saving guest to DB");
 
         Guest guest = Guest.builder()
                 .firstName(firstName)
@@ -51,11 +51,11 @@ public class GuestDao {
     }
 
     public Optional<Guest> fetchGuestByFullName(String firstName, String lastName) {
-        log.info("Fetching guest with firstName={}, lastName={}", firstName, lastName);
+        log.info("GuestDao - Fetching guest with firstName={}, lastName={}", firstName, lastName);
 
         try {
             Optional<Guest> guestOpt =
-                    guestRepository.findByFirstNameAndLastName(firstName, lastName);
+                    guestRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastName);
 
             if (guestOpt.isPresent()) {
                 log.info("Guest found: {}", guestOpt.get());
@@ -72,7 +72,7 @@ public class GuestDao {
 
     @Transactional
     public Guest updateGuest(Guest guest) {
-        log.info("Updating guest with ID: {}", guest.getId());
+        log.info("GuestDao - Updating guest with ID: {}", guest.getId());
 
         if (guest.getId() == null) {
             log.error("Cannot update guest without ID");
@@ -90,7 +90,7 @@ public class GuestDao {
     }
 
     public List<Guest> fetchAllGuests() {
-        log.info("Fetching all guests");
+        log.info("GuestDao - Fetching all guests");
 
         try {
             List<Guest> guests = guestRepository.findAll();

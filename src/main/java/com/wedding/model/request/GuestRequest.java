@@ -9,5 +9,4 @@ public class GuestRequest {
     private String email;
     private String phone;
     private boolean plusOneAllowed;
-
 }

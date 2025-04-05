@@ -3,8 +3,10 @@ package com.wedding.backend.wedding_app.service;
 import com.wedding.backend.wedding_app.dao.GuestDao;
 import com.wedding.backend.wedding_app.entity.Guest;
 import com.wedding.model.request.GuestRequest;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.action.internal.EntityActionVetoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,8 +25,12 @@ public class GuestService {
         return guestDao.saveGuest(firstName, lastName, email, phone, plusOneAllowed);
     }
 
-    public Optional<Guest> findGuestByName(String firstName, String lastName) {
-        return guestDao.fetchGuestByFullName(firstName, lastName);
+    public Guest findGuestByName(String firstName, String lastName) {
+        Optional<Guest> guest = guestDao.fetchGuestByFullName(firstName, lastName);
+        if (guest.isPresent()) {
+            return guest.get();
+        }
+        throw new EntityNotFoundException("entity not found");
     }
 
     public List<Guest> getAllGuests() {
@@ -32,19 +38,15 @@ public class GuestService {
     }
 
     public Guest updateGuest(GuestRequest request) {
-        Optional<Guest> existingGuest = findGuestByName(request.getFirstName(), request.getLastName());
 
-        if (existingGuest.isEmpty()) {
-            log.error("Guest does not exist");
-            throw new RuntimeException("Guest not exist exception");
-        }
+        Guest existingGuest =
+                findGuestByName(request.getFirstName(), request.getLastName());
 
-        Guest guest = existingGuest.get();
-        guest.setEmail(request.getEmail());
-        guest.setPhone(request.getPhone());
-        guest.setPlusOneAllowed(request.isPlusOneAllowed());
+        existingGuest.setEmail(request.getEmail());
+        existingGuest.setPhone(request.getPhone());
+        existingGuest.setPlusOneAllowed(request.isPlusOneAllowed());
 
-        return guestDao.updateGuest(guest);
+        return guestDao.updateGuest(existingGuest);
     }
 
     public void removeGuest(Long id) {
