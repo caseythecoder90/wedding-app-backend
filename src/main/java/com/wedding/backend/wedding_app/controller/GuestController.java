@@ -1,11 +1,10 @@
 package com.wedding.backend.wedding_app.controller;
 
 import com.wedding.backend.wedding_app.annotations.GuestApiDocs;
-import com.wedding.backend.wedding_app.entity.Guest;
+import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.service.GuestService;
 import com.wedding.model.request.GuestRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -37,10 +36,10 @@ public class GuestController {
 
     @PostMapping
     @GuestApiDocs.CreateGuest
-    public ResponseEntity<Guest> createGuest(@RequestBody GuestRequest request) {
+    public ResponseEntity<GuestEntity> createGuest(@RequestBody GuestRequest request) {
         log.info("BEGIN - Received request to create guest: {}", request);
 
-        Guest guest = guestService.addGuest(
+        GuestEntity guest = guestService.addGuest(
                 request.getFirstName(),
                 request.getLastName(),
                 request.getEmail(),
@@ -61,7 +60,7 @@ public class GuestController {
 
         log.info("BEGIN - Searching for guest: {} {}", firstName, lastName);
 
-        Guest guest = guestService.findGuestByName(firstName, lastName);
+        GuestEntity guest = guestService.findGuestByName(firstName, lastName);
 
         log.info("END - Found guest");
 
@@ -70,11 +69,11 @@ public class GuestController {
 
     @GetMapping
     @GuestApiDocs.GetAllGuests
-    public ResponseEntity<List<Guest>> getAllGuests() {
+    public ResponseEntity<List<GuestEntity>> getAllGuests() {
 
         log.info("BEGIN - Fetching all guests");
 
-        List<Guest> allGuest = guestService.getAllGuests();
+        List<GuestEntity> allGuest = guestService.getAllGuests();
 
         log.info("END - {} guests found", allGuest.size());
 
@@ -83,13 +82,13 @@ public class GuestController {
 
     @PutMapping("/{id}")
     @GuestApiDocs.UpdateGuest
-    public ResponseEntity<Guest> updateGuest(
+    public ResponseEntity<GuestEntity> updateGuest(
             @PathVariable Long id,
             @RequestBody GuestRequest request) {
 
         log.info("BEGIN - Updating guest ID = {}", id);
 
-        Guest updatedGuest = guestService.updateGuest(request);
+        GuestEntity updatedGuest = guestService.updateGuest(request);
 
         log.info("END - Guest updated successfully");
 

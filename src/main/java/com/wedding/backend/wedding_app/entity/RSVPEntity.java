@@ -15,14 +15,14 @@ import java.time.OffsetDateTime;
 @Data
 @Entity
 @Table(name = "rsvps")
-public class RSVP {
+public class RSVPEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "guest_id")
-    private Guest guest;
+    private GuestEntity guest;
 
     private Boolean attending;
     private Boolean bringingPlusOne;
@@ -30,9 +30,9 @@ public class RSVP {
     private String dietaryRestrictions;
     private OffsetDateTime submittedAt;
 
-    public RSVP() {}
+    public RSVPEntity() {}
 
-    private RSVP(Builder builder) {
+    private RSVPEntity(Builder builder) {
         this.attending = builder.attending;
         this.bringingPlusOne = builder.bringingPlusOne;
         this.plusOneName = builder.plusOneName;
@@ -76,8 +76,8 @@ public class RSVP {
             return this;
         }
 
-        public RSVP build() {
-            return new RSVP(this);
+        public RSVPEntity build() {
+            return new RSVPEntity(this);
         }
     }
 }

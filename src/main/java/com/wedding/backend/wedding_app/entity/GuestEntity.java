@@ -12,7 +12,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "guests")
-public class Guest {
+public class GuestEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +25,9 @@ public class Guest {
     private Boolean plusOneAllowed;
 
     @OneToOne(mappedBy = "guest", cascade = CascadeType.ALL)
-    private RSVP rsvp;
+    private RSVPEntity rsvp;
 
-    public Guest() {
+    public GuestEntity() {
     }
 
     public static Builder builder() {
@@ -35,7 +35,7 @@ public class Guest {
     }
 
     // Private constructor used by Builder
-    private Guest(Builder builder) {
+    private GuestEntity(Builder builder) {
         this.firstName = builder.firstName;
         this.lastName = builder.lastName;
         this.email = builder.email;
@@ -51,7 +51,7 @@ public class Guest {
         private String email;
         private String phone;
         private Boolean plusOneAllowed;
-        private RSVP rsvp;
+        private RSVPEntity rsvp;
 
         public Builder firstName(String firstName) {
             this.firstName = firstName;
@@ -78,13 +78,13 @@ public class Guest {
             return this;
         }
 
-        public Builder rsvp(RSVP rsvp) {
+        public Builder rsvp(RSVPEntity rsvp) {
             this.rsvp = rsvp;
             return this;
         }
 
-        public Guest build() {
-            return new Guest(this);
+        public GuestEntity build() {
+            return new GuestEntity(this);
         }
     }
 

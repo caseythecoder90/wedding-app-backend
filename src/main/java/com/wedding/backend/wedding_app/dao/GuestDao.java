@@ -1,6 +1,6 @@
 package com.wedding.backend.wedding_app.dao;
 
-import com.wedding.backend.wedding_app.entity.Guest;
+import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ public class GuestDao {
     private static final Logger log = LoggerFactory.getLogger(GuestDao.class);
 
     @Transactional
-    public Guest saveGuest(
+    public GuestEntity saveGuest(
             String firstName,
             String lastName,
             String email,
@@ -32,7 +32,7 @@ public class GuestDao {
 
         log.info("GuestDao - Creating and saving guest to DB");
 
-        Guest guest = Guest.builder()
+        GuestEntity guest = GuestEntity.builder()
                 .firstName(firstName)
                 .lastName(lastName)
                 .email(email)
@@ -41,7 +41,7 @@ public class GuestDao {
                 .build();
 
         try {
-            Guest savedGuest = guestRepository.save(guest);
+            GuestEntity savedGuest = guestRepository.save(guest);
             log.info("Guest created and saved to DB => {}", savedGuest);
             return savedGuest;
         } catch (Exception e) {
@@ -50,11 +50,11 @@ public class GuestDao {
         }
     }
 
-    public Optional<Guest> fetchGuestByFullName(String firstName, String lastName) {
+    public Optional<GuestEntity> fetchGuestByFullName(String firstName, String lastName) {
         log.info("GuestDao - Fetching guest with firstName={}, lastName={}", firstName, lastName);
 
         try {
-            Optional<Guest> guestOpt =
+            Optional<GuestEntity> guestOpt =
                     guestRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastName);
 
             if (guestOpt.isPresent()) {
@@ -71,7 +71,7 @@ public class GuestDao {
     }
 
     @Transactional
-    public Guest updateGuest(Guest guest) {
+    public GuestEntity updateGuest(GuestEntity guest) {
         log.info("GuestDao - Updating guest with ID: {}", guest.getId());
 
         if (guest.getId() == null) {
@@ -80,7 +80,7 @@ public class GuestDao {
         }
 
         try {
-            Guest updatedGuest = guestRepository.save(guest);
+            GuestEntity updatedGuest = guestRepository.save(guest);
             log.info("Guest updated successfully: {}", updatedGuest);
             return updatedGuest;
         } catch (Exception e) {
@@ -89,11 +89,11 @@ public class GuestDao {
         }
     }
 
-    public List<Guest> fetchAllGuests() {
+    public List<GuestEntity> fetchAllGuests() {
         log.info("GuestDao - Fetching all guests");
 
         try {
-            List<Guest> guests = guestRepository.findAll();
+            List<GuestEntity> guests = guestRepository.findAll();
             log.info("Found {} guests", guests.size());
             return guests;
         } catch (Exception e) {
