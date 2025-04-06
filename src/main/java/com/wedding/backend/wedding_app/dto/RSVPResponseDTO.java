@@ -1,38 +1,23 @@
-package com.wedding.backend.wedding_app.entity;
+package com.wedding.backend.wedding_app.dto;
 
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.JoinColumn;
 import lombok.Data;
-
 import java.time.OffsetDateTime;
 
 @Data
-@Entity
-@Table(name = "rsvps")
-public class RSVPEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class RSVPResponseDTO {
     private Long id;
-
-    @OneToOne
-    @JoinColumn(name = "guest_id")
-    private GuestEntity guest;
-
+    private Long guestId;
+    private String guestName;
     private Boolean attending;
     private Boolean bringingPlusOne;
     private String plusOneName;
     private String dietaryRestrictions;
     private OffsetDateTime submittedAt;
 
-    public RSVPEntity() {}
-
-    private RSVPEntity(Builder builder) {
+    private RSVPResponseDTO(Builder builder) {
+        this.id = builder.id;
+        this.guestId = builder.guestId;
+        this.guestName = builder.guestName;
         this.attending = builder.attending;
         this.bringingPlusOne = builder.bringingPlusOne;
         this.plusOneName = builder.plusOneName;
@@ -45,11 +30,29 @@ public class RSVPEntity {
     }
 
     public static class Builder {
+        private Long id;
+        private Long guestId;
+        private String guestName;
         private Boolean attending;
         private Boolean bringingPlusOne;
         private String plusOneName;
         private String dietaryRestrictions;
         private OffsetDateTime submittedAt;
+
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder guestId(Long guestId) {
+            this.guestId = guestId;
+            return this;
+        }
+
+        public Builder guestName(String guestName) {
+            this.guestName = guestName;
+            return this;
+        }
 
         public Builder attending(Boolean attending) {
             this.attending = attending;
@@ -76,8 +79,8 @@ public class RSVPEntity {
             return this;
         }
 
-        public RSVPEntity build() {
-            return new RSVPEntity(this);
+        public RSVPResponseDTO build() {
+            return new RSVPResponseDTO(this);
         }
     }
 }

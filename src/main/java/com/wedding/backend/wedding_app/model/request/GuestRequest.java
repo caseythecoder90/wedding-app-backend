@@ -1,4 +1,4 @@
-package com.wedding.model.request;
+package com.wedding.backend.wedding_app.model.request;
 
 import lombok.Data;
 

@@ -1,9 +1,10 @@
 package com.wedding.backend.wedding_app.controller;
 
 import com.wedding.backend.wedding_app.annotations.GuestApiDocs;
+import com.wedding.backend.wedding_app.dto.GuestResponseDTO;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.service.GuestService;
-import com.wedding.model.request.GuestRequest;
+import com.wedding.backend.wedding_app.model.request.GuestRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
-
-
 
 import java.util.List;
 
@@ -34,6 +33,11 @@ public class GuestController {
 
     private final GuestService guestService;
 
+    /**
+     * Create a new guest
+     * @param request Guest details request
+     * @return Created guest entity
+     */
     @PostMapping
     @GuestApiDocs.CreateGuest
     public ResponseEntity<GuestEntity> createGuest(@RequestBody GuestRequest request) {
@@ -47,14 +51,20 @@ public class GuestController {
                 request.isPlusOneAllowed()
         );
 
-        log.info("END - Guest created and saved");
+        log.info("END - Guest created with ID: {}", guest.getId());
 
         return ResponseEntity.status(CREATED).body(guest);
     }
 
+    /**
+     * Find guest by name
+     * @param firstName Guest's first name
+     * @param lastName Guest's last name
+     * @return Guest entity
+     */
     @GetMapping("/search")
     @GuestApiDocs.FindGuestByName
-    public ResponseEntity<?> findGuestByName(
+    public ResponseEntity<GuestEntity> findGuestByName(
             @RequestParam String firstName,
             @RequestParam String lastName) {
 
@@ -62,39 +72,93 @@ public class GuestController {
 
         GuestEntity guest = guestService.findGuestByName(firstName, lastName);
 
-        log.info("END - Found guest");
+        log.info("END - Found guest with ID: {}", guest.getId());
 
         return ResponseEntity.status(OK).body(guest);
     }
 
+    /**
+     * Verify guest and return DTO
+     * @param firstName Guest's first name
+     * @param lastName Guest's last name
+     * @return Guest response DTO
+     */
+    @GetMapping("/verify")
+    @GuestApiDocs.FindGuestByName
+    public ResponseEntity<GuestResponseDTO> verifyGuest(
+            @RequestParam String firstName,
+            @RequestParam String lastName) {
+
+        log.info("BEGIN - Verifying guest: {} {}", firstName, lastName);
+
+        GuestResponseDTO guestResponse = guestService.getVerifiedGuest(firstName, lastName);
+
+        log.info("END - Guest verified with ID: {}", guestResponse.getId());
+
+        return ResponseEntity.status(OK).body(guestResponse);
+    }
+
+    /**
+     * Get all guests
+     * @return List of guest entities
+     */
     @GetMapping
     @GuestApiDocs.GetAllGuests
     public ResponseEntity<List<GuestEntity>> getAllGuests() {
-
         log.info("BEGIN - Fetching all guests");
 
-        List<GuestEntity> allGuest = guestService.getAllGuests();
+        List<GuestEntity> allGuests = guestService.getAllGuests();
 
-        log.info("END - {} guests found", allGuest.size());
+        log.info("END - {} guests found", allGuests.size());
 
-        return ResponseEntity.status(OK).body(allGuest);
+        return ResponseEntity.status(OK).body(allGuests);
     }
 
+    /**
+     * Get guest by ID
+     * @param id Guest ID
+     * @return Guest entity
+     */
+    @GetMapping("/{id}")
+    @GuestApiDocs.GetGuestById
+    public ResponseEntity<GuestEntity> getGuestById(@PathVariable Long id) {
+        log.info("BEGIN - Fetching guest with ID: {}", id);
+
+        GuestEntity guest = guestService.findById(id);
+
+        log.info("END - Found guest: {} {}", guest.getFirstName(), guest.getLastName());
+
+        return ResponseEntity.status(OK).body(guest);
+    }
+
+    /**
+     * Update guest
+     * @param id Guest ID
+     * @param request Updated guest details
+     * @return Updated guest entity
+     */
     @PutMapping("/{id}")
     @GuestApiDocs.UpdateGuest
     public ResponseEntity<GuestEntity> updateGuest(
             @PathVariable Long id,
             @RequestBody GuestRequest request) {
 
-        log.info("BEGIN - Updating guest ID = {}", id);
+        log.info("BEGIN - Updating guest ID: {}", id);
 
+        // ID in path parameter is currently not used in the service method
+        // The service looks up the guest by name
         GuestEntity updatedGuest = guestService.updateGuest(request);
 
-        log.info("END - Guest updated successfully");
+        log.info("END - Guest updated successfully with ID: {}", updatedGuest.getId());
 
         return ResponseEntity.ok(updatedGuest);
     }
 
+    /**
+     * Delete guest
+     * @param id Guest ID to delete
+     * @return No content response
+     */
     @DeleteMapping("/{id}")
     @GuestApiDocs.DeleteGuest
     public ResponseEntity<Void> deleteGuest(@PathVariable Long id) {

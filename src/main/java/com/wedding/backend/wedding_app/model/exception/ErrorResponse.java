@@ -1,4 +1,4 @@
-package com.wedding.model.exception;
+package com.wedding.backend.wedding_app.model.exception;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -14,12 +14,12 @@ import java.util.List;
 public class ErrorResponse {
     private HttpStatus status;
     private String errorCode;
-    private String message;
+    private String errorMessage;
     private String errorReason;
     private String path;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
-    private String errorId;
     private boolean retryable;
+    private String errorId;
     private List<Detail> details;
 }

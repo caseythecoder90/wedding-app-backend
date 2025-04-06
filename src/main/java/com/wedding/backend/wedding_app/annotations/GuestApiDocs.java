@@ -1,6 +1,6 @@
 package com.wedding.backend.wedding_app.annotations;
 
-import com.wedding.model.exception.ErrorResponse;
+import com.wedding.backend.wedding_app.model.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +12,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-public @interface GuestApiDocs {
+public class GuestApiDocs {
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -24,7 +24,7 @@ public @interface GuestApiDocs {
             @ApiResponse(responseCode = "500", description = "Server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @interface CreateGuest {}
+    public @interface CreateGuest {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -34,7 +34,17 @@ public @interface GuestApiDocs {
             @ApiResponse(responseCode = "404", description = "Guest not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @interface FindGuestByName {}
+    public @interface FindGuestByName {}
+    
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(summary = "Get guest by ID", description = "Retrieves a guest using their ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Found the guest"),
+            @ApiResponse(responseCode = "404", description = "Guest not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public @interface GetGuestById {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -48,7 +58,7 @@ public @interface GuestApiDocs {
             @ApiResponse(responseCode = "500", description = "Server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @interface UpdateGuest {}
+    public @interface UpdateGuest {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -60,7 +70,7 @@ public @interface GuestApiDocs {
             @ApiResponse(responseCode = "500", description = "Server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @interface DeleteGuest {}
+    public @interface DeleteGuest {}
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -70,5 +80,5 @@ public @interface GuestApiDocs {
             @ApiResponse(responseCode = "500", description = "Server error",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @interface GetAllGuests {}
+    public @interface GetAllGuests {}
 }

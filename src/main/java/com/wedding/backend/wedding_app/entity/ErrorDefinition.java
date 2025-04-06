@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ErrorEntity {
+public class ErrorDefinition {
 
     @Id
     @Column(name = "uniq_err_key")

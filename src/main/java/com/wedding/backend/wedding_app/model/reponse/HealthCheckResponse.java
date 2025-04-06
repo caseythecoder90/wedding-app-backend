@@ -1,10 +1,13 @@
-package com.wedding.model.reponse;
+package com.wedding.backend.wedding_app.model.reponse;
+
+import lombok.Data;
 
 import java.time.Instant;
 
 /**
  * Response for Health Check endpoint.
  */
+@Data
 public class HealthCheckResponse {
     private String status;
     private String message;
@@ -18,18 +21,6 @@ public class HealthCheckResponse {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
     }
 
     public static class Builder {

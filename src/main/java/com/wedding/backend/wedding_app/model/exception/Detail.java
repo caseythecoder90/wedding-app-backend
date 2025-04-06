@@ -1,4 +1,4 @@
-package com.wedding.model.exception;
+package com.wedding.backend.wedding_app.model.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
