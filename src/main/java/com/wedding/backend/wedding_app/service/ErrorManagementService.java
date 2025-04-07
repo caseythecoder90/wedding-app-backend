@@ -7,8 +7,8 @@ import com.wedding.backend.wedding_app.model.exception.ErrorResponse;
 import com.wedding.backend.wedding_app.model.request.ErrorDefinitionRequest;
 import com.wedding.backend.wedding_app.repository.ErrorRepository;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +20,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
 public class ErrorManagementService {
 
     private final ErrorRepository errorRepository;
     private final Map<String, ErrorDefinition> errorDefinitions = new ConcurrentHashMap<>();
+    private final Logger log = LoggerFactory.getLogger(ErrorManagementService.class);
+    
+    public ErrorManagementService(ErrorRepository errorRepository) {
+        this.errorRepository = errorRepository;
+    }
 
     @PostConstruct
     public void loadErrors() {

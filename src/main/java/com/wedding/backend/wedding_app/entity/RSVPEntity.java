@@ -8,11 +8,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.JoinColumn;
-import lombok.Data;
 
 import java.time.OffsetDateTime;
 
-@Data
 @Entity
 @Table(name = "rsvps")
 public class RSVPEntity {
@@ -79,5 +77,91 @@ public class RSVPEntity {
         public RSVPEntity build() {
             return new RSVPEntity(this);
         }
+    }
+    
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public GuestEntity getGuest() {
+        return guest;
+    }
+
+    public void setGuest(GuestEntity guest) {
+        this.guest = guest;
+    }
+
+    public Boolean getAttending() {
+        return attending;
+    }
+
+    public void setAttending(Boolean attending) {
+        this.attending = attending;
+    }
+
+    public Boolean getBringingPlusOne() {
+        return bringingPlusOne;
+    }
+
+    public void setBringingPlusOne(Boolean bringingPlusOne) {
+        this.bringingPlusOne = bringingPlusOne;
+    }
+
+    public String getPlusOneName() {
+        return plusOneName;
+    }
+
+    public void setPlusOneName(String plusOneName) {
+        this.plusOneName = plusOneName;
+    }
+
+    public String getDietaryRestrictions() {
+        return dietaryRestrictions;
+    }
+
+    public void setDietaryRestrictions(String dietaryRestrictions) {
+        this.dietaryRestrictions = dietaryRestrictions;
+    }
+
+    public OffsetDateTime getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(OffsetDateTime submittedAt) {
+        this.submittedAt = submittedAt;
+    }
+    
+    // equals and hashCode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        RSVPEntity that = (RSVPEntity) o;
+        
+        return id != null ? id.equals(that.id) : that.id == null;
+    }
+    
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+    
+    @Override
+    public String toString() {
+        return "RSVPEntity{" +
+                "id=" + id +
+                ", guest=" + (guest != null ? guest.getId() : null) +
+                ", attending=" + attending +
+                ", bringingPlusOne=" + bringingPlusOne +
+                ", plusOneName='" + plusOneName + '\'' +
+                ", dietaryRestrictions='" + dietaryRestrictions + '\'' +
+                ", submittedAt=" + submittedAt +
+                '}';
     }
 }

@@ -6,8 +6,8 @@ import com.wedding.backend.wedding_app.entity.ErrorDefinition;
 import com.wedding.backend.wedding_app.model.request.ErrorDefinitionRequest;
 import com.wedding.backend.wedding_app.service.ErrorManagementService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,13 +22,16 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import java.util.Map;
 
 
-@Slf4j
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("v1/api/operations")
 public class ErrorManagementController {
 
     private final ErrorManagementService errorService;
+    private final Logger log = LoggerFactory.getLogger(ErrorManagementController.class);
+    
+    public ErrorManagementController(ErrorManagementService errorService) {
+        this.errorService = errorService;
+    }
 
     @PostMapping("/errors")
     @OperationsApiDocs.AddErrorDefinition

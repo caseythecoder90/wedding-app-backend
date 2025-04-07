@@ -5,22 +5,25 @@ import com.wedding.backend.wedding_app.dto.RSVPRequestDTO;
 import com.wedding.backend.wedding_app.dto.RSVPResponseDTO;
 import com.wedding.backend.wedding_app.service.RSVPService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Slf4j
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/v1/api/rsvps")
 @Tag(name = "RSVP Management", description = "APIs for managing wedding RSVPs")
 public class RSVPController {
 
     private final RSVPService rsvpService;
+    private final Logger log = LoggerFactory.getLogger(RSVPController.class);
+    
+    public RSVPController(RSVPService rsvpService) {
+        this.rsvpService = rsvpService;
+    }
 
     @GetMapping("/{guestId}")
     @RSVPApiDocs.GetRSVPByGuestId

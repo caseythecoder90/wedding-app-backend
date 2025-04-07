@@ -5,19 +5,22 @@ import com.wedding.backend.wedding_app.dto.GuestResponseDTO;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.model.request.GuestRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class GuestService {
 
     private final GuestDao guestDao;
+    private final Logger log = LoggerFactory.getLogger(GuestService.class);
+    
+    public GuestService(GuestDao guestDao) {
+        this.guestDao = guestDao;
+    }
 
     /**
      * Add a new guest

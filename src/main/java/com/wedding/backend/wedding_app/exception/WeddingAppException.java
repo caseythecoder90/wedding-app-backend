@@ -1,13 +1,21 @@
 package com.wedding.backend.wedding_app.exception;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class WeddingAppException extends RuntimeException {
     private final String errorKey;
     private Object details;
+    
+    // Getters
+    public String getErrorKey() {
+        return errorKey;
+    }
+    
+    public Object getDetails() {
+        return details;
+    }
+    
+    public void setDetails(Object details) {
+        this.details = details;
+    }
 
     public WeddingAppException(String errorKey) {
         super("Error occurred: " + errorKey);
@@ -61,6 +69,7 @@ public class WeddingAppException extends RuntimeException {
         return new WeddingAppException("GUEST_ALREADY_EXISTS",
                 String.format("Guest already exists with name: %s %s", firstName, lastName));
     }
+
 
     public static WeddingAppException invalidParameter(String paramName) {
         return new WeddingAppException("INVALID_PARAMETER", paramName);

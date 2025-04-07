@@ -7,21 +7,25 @@ import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class RSVPService {
 
     private final RSVPDao rsvpDao;
     private final GuestRepository guestRepository;
+    private final Logger log = LoggerFactory.getLogger(RSVPService.class);
+    
+    public RSVPService(RSVPDao rsvpDao, GuestRepository guestRepository) {
+        this.rsvpDao = rsvpDao;
+        this.guestRepository = guestRepository;
+    }
 
     /**
      * Get RSVP by ID

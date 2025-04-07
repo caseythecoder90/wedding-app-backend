@@ -1,9 +1,7 @@
 package com.wedding.backend.wedding_app.dto;
 
-import lombok.Data;
 import java.time.OffsetDateTime;
 
-@Data
 public class RSVPRequestDTO {
     private Long guestId;
     private Boolean attending;
@@ -12,6 +10,34 @@ public class RSVPRequestDTO {
     private String dietaryRestrictions;
     private String email;
     private OffsetDateTime submittedAt;
+
+    public Long getGuestId() {
+        return guestId;
+    }
+
+    public Boolean getAttending() {
+        return attending;
+    }
+
+    public Boolean getBringingPlusOne() {
+        return bringingPlusOne;
+    }
+
+    public String getPlusOneName() {
+        return plusOneName;
+    }
+
+    public String getDietaryRestrictions() {
+        return dietaryRestrictions;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public OffsetDateTime getSubmittedAt() {
+        return submittedAt;
+    }
 
     private RSVPRequestDTO(Builder builder) {
         this.guestId = builder.guestId;

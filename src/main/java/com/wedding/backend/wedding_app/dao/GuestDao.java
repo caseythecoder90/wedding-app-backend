@@ -1,23 +1,25 @@
 package com.wedding.backend.wedding_app.dao;
 
 import com.wedding.backend.wedding_app.entity.GuestEntity;
-import com.wedding.backend.wedding_app.exception.DatabaseException;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Repository
-@RequiredArgsConstructor
 public class GuestDao {
 
     private final GuestRepository guestRepository;
+    private final Logger log = LoggerFactory.getLogger(GuestDao.class);
+    
+    public GuestDao(GuestRepository guestRepository) {
+        this.guestRepository = guestRepository;
+    }
     
     /**
      * Find guest by ID

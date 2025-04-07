@@ -7,14 +7,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.CascadeType;
-import lombok.Data;
 
 @Entity
-@Data
 @Table(name = "guests")
 public class GuestEntity {
 
     @Id
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -97,5 +96,78 @@ public class GuestEntity {
                     email: %s
                     phone: %s
                 """.formatted(firstName, lastName, email, phone);
+    }
+    
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public Boolean getPlusOneAllowed() {
+        return plusOneAllowed;
+    }
+
+    public void setPlusOneAllowed(Boolean plusOneAllowed) {
+        this.plusOneAllowed = plusOneAllowed;
+    }
+
+    public RSVPEntity getRsvp() {
+        return rsvp;
+    }
+
+    public void setRsvp(RSVPEntity rsvp) {
+        this.rsvp = rsvp;
+    }
+    
+    // Equals and HashCode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        GuestEntity that = (GuestEntity) o;
+        
+        return id != null ? id.equals(that.id) : that.id == null;
+    }
+    
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

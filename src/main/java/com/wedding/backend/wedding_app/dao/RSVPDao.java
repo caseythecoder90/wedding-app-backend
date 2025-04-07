@@ -6,8 +6,8 @@ import com.wedding.backend.wedding_app.exception.DatabaseException;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
 import com.wedding.backend.wedding_app.repository.RSVPRespository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,13 +15,17 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Repository
-@RequiredArgsConstructor
 public class RSVPDao {
 
     private final RSVPRespository rsvpRepository;
     private final GuestRepository guestRepository;
+    private final Logger log = LoggerFactory.getLogger(RSVPDao.class);
+    
+    public RSVPDao(RSVPRespository rsvpRepository, GuestRepository guestRepository) {
+        this.rsvpRepository = rsvpRepository;
+        this.guestRepository = guestRepository;
+    }
 
     /**
      * Find RSVP by ID

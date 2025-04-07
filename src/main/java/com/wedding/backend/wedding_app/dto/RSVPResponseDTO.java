@@ -1,9 +1,7 @@
 package com.wedding.backend.wedding_app.dto;
 
-import lombok.Data;
 import java.time.OffsetDateTime;
 
-@Data
 public class RSVPResponseDTO {
     private Long id;
     private Long guestId;
@@ -13,6 +11,71 @@ public class RSVPResponseDTO {
     private String plusOneName;
     private String dietaryRestrictions;
     private OffsetDateTime submittedAt;
+    
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public Long getGuestId() {
+        return guestId;
+    }
+    
+    public void setGuestId(Long guestId) {
+        this.guestId = guestId;
+    }
+    
+    public String getGuestName() {
+        return guestName;
+    }
+    
+    public void setGuestName(String guestName) {
+        this.guestName = guestName;
+    }
+    
+    public Boolean getAttending() {
+        return attending;
+    }
+    
+    public void setAttending(Boolean attending) {
+        this.attending = attending;
+    }
+    
+    public Boolean getBringingPlusOne() {
+        return bringingPlusOne;
+    }
+    
+    public void setBringingPlusOne(Boolean bringingPlusOne) {
+        this.bringingPlusOne = bringingPlusOne;
+    }
+    
+    public String getPlusOneName() {
+        return plusOneName;
+    }
+    
+    public void setPlusOneName(String plusOneName) {
+        this.plusOneName = plusOneName;
+    }
+    
+    public String getDietaryRestrictions() {
+        return dietaryRestrictions;
+    }
+    
+    public void setDietaryRestrictions(String dietaryRestrictions) {
+        this.dietaryRestrictions = dietaryRestrictions;
+    }
+    
+    public OffsetDateTime getSubmittedAt() {
+        return submittedAt;
+    }
+    
+    public void setSubmittedAt(OffsetDateTime submittedAt) {
+        this.submittedAt = submittedAt;
+    }
 
     private RSVPResponseDTO(Builder builder) {
         this.id = builder.id;
