@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CREATED;
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.UPDATED;
+
 @RestController
 @RequestMapping("/v1/api/rsvps")
 @Tag(name = "RSVP Management", description = "APIs for managing wedding RSVPs")
@@ -48,7 +51,7 @@ public class RSVPController {
         boolean exists = rsvpService.hasRSVP(request.getGuestId());
         RSVPResponseDTO response = rsvpService.submitOrUpdateRSVP(request);
         
-        log.info("END - RSVP {} for guest ID: {}", exists ? "updated" : "created", request.getGuestId());
+        log.info("END - RSVP {} for guest ID: {}", exists ? UPDATED : CREATED, request.getGuestId());
         return ResponseEntity.status(exists ? HttpStatus.OK : HttpStatus.CREATED).body(response);
     }
 

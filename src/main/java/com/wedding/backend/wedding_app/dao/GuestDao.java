@@ -37,7 +37,7 @@ public class GuestDao {
     }
 
     /**
-     * Find guest by first and last name (case insensitive)
+     * Find guest by first and last name (case-insensitive)
      * @param firstName The guest's first name
      * @param lastName The guest's last name
      * @return Optional guest entity

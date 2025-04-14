@@ -21,6 +21,19 @@ spring:
     cors:
       allowed-origins: https://wedding-app-frontend.vercel.app,http://localhost:3000
       allowed-methods: GET,POST,PUT,DELETE
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: caseythecoder90@gmail.com
+    password: pssxtmsexorkukhy
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+  freemarker:
+    template-loader-path: classpath:/templates/
+    suffix: ftlh
+    cache: false # set to true in prod
+    charset: UTF-8
 
 # Wedding API properties
 wedding:

@@ -7,6 +7,7 @@ import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,16 +16,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 @Service
 public class RSVPService {
 
     private final RSVPDao rsvpDao;
     private final GuestRepository guestRepository;
+    private final EmailService emailService;
     private final Logger log = LoggerFactory.getLogger(RSVPService.class);
     
-    public RSVPService(RSVPDao rsvpDao, GuestRepository guestRepository) {
+    public RSVPService(RSVPDao rsvpDao, GuestRepository guestRepository, EmailService emailService) {
         this.rsvpDao = rsvpDao;
         this.guestRepository = guestRepository;
+        this.emailService = emailService;
     }
 
     /**
@@ -126,13 +131,26 @@ public class RSVPService {
                 request.getDietaryRestrictions());
 
         // If email was provided in the request, update the guest email
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+        if (StringUtils.isNotBlank(request.getEmail())) {
             log.info("Updating email for guest ID: {}", request.getGuestId());
             guest.setEmail(request.getEmail());
             guestRepository.save(guest);
         }
         
+        // Send email confirmation if requested and email is available
+        if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
+            try {
+                log.info("Sending RSVP confirmation email to guest: {}", guest.getEmail());
+                emailService.sendRSVPConfirmationEmail(savedRSVP, guest);
+            } catch (Exception e) {
+                // Log the error but don't fail the RSVP process
+                log.error("Failed to send RSVP confirmation email", e);
+            }
+        }
+        
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(savedRSVP);
+
+        // this logic is wrong need to fix
         boolean isNewRsvp = savedRSVP.getId() != null && savedRSVP.getId() == 0;
         log.info("COMPLETED - RSVP {} for guest: {}", isNewRsvp ? "created" : "updated", responseDTO.getGuestName());
 

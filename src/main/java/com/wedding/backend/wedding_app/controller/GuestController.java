@@ -41,7 +41,7 @@ public class GuestController {
      * @param request Guest details request
      * @return Created guest entity
      */
-    @PostMapping
+    @PostMapping("/create")
     @GuestApiDocs.CreateGuest
     public ResponseEntity<GuestEntity> createGuest(@RequestBody GuestRequest request) {
         log.info("BEGIN - Received request to create guest: {}", request);
@@ -140,19 +140,16 @@ public class GuestController {
      * @param request Updated guest details
      * @return Updated guest entity
      */
-    @PutMapping("/{id}")
+    @PutMapping("/update")
     @GuestApiDocs.UpdateGuest
     public ResponseEntity<GuestEntity> updateGuest(
-            @PathVariable Long id,
             @RequestBody GuestRequest request) {
 
-        log.info("BEGIN - Updating guest ID: {}", id);
+        log.info("BEGIN - Updating guest: {}, {}", request.getFirstName(), request.getLastName());
 
-        // ID in path parameter is currently not used in the service method
-        // The service looks up the guest by name
         GuestEntity updatedGuest = guestService.updateGuest(request);
 
-        log.info("END - Guest updated successfully with ID: {}", updatedGuest.getId());
+        log.info("END - Guest updated successfully");
 
         return ResponseEntity.ok(updatedGuest);
     }

@@ -9,6 +9,7 @@ public class RSVPRequestDTO {
     private String plusOneName;
     private String dietaryRestrictions;
     private String email;
+    private boolean sendConfirmationEmail;
     private OffsetDateTime submittedAt;
 
     public Long getGuestId() {
@@ -35,6 +36,10 @@ public class RSVPRequestDTO {
         return email;
     }
 
+    public boolean isSendConfirmationEmail() {
+        return sendConfirmationEmail;
+    }
+
     public OffsetDateTime getSubmittedAt() {
         return submittedAt;
     }
@@ -46,6 +51,7 @@ public class RSVPRequestDTO {
         this.plusOneName = builder.plusOneName;
         this.dietaryRestrictions = builder.dietaryRestrictions;
         this.email = builder.email;
+        this.sendConfirmationEmail = builder.sendConfirmationEmail;
         this.submittedAt = builder.submittedAt;
     }
 
@@ -60,6 +66,7 @@ public class RSVPRequestDTO {
         private String plusOneName;
         private String dietaryRestrictions;
         private String email;
+        private boolean sendConfirmationEmail;
         private OffsetDateTime submittedAt;
 
         public Builder guestId(Long guestId) {
@@ -89,6 +96,11 @@ public class RSVPRequestDTO {
 
         public Builder email(String email) {
             this.email = email;
+            return this;
+        }
+
+        public Builder sendConfirmationEmail(boolean sendConfirmationEmail) {
+            this.sendConfirmationEmail = sendConfirmationEmail;
             return this;
         }
 
