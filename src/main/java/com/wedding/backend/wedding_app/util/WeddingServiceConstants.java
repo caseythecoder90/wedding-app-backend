@@ -14,4 +14,10 @@ public class WeddingServiceConstants {
     public static final String ATTENDING_RSVP_CONFIRMATION = "email/attending.ftlh";
     public static final String NOT_ATTENDING_RSVP_CONFIRMATION = "email/not-attending.ftlh";
 
+    // QR Code related
+    public static final String BASE_URL = "https://wedding-app-frontend.vercel.app/rsvp?code=";
+    public static final int QR_CODE_SIZE = 300;
+    public static final String PNG = "PNG";
+    public static final String PNG_EXTENSION = ".png";
+
 }

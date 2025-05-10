@@ -1,4 +1,5 @@
 package com.wedding.backend.wedding_app.dto;
+
 public class GuestResponseDTO {
     private Long id;
     private String firstName;

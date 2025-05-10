@@ -57,4 +57,27 @@ public class DebugApiDocs {
     })
     public @interface DebugCors {
     }
+    
+    /**
+     * Documentation for the test QR code generation endpoint
+     */
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+        summary = "Generate test QR code", 
+        description = "Generates a QR code based on a provided code string. The QR code will link to the RSVP page with the code embedded."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "QR code generated successfully", 
+            content = @Content(mediaType = "image/png")
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "Failed to generate QR code"
+        )
+    })
+    public @interface TestQRCode {
+    }
 }

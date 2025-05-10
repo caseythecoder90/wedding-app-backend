@@ -3,14 +3,14 @@ package com.wedding.backend.wedding_app.dto;
 import java.time.OffsetDateTime;
 
 public class RSVPRequestDTO {
-    private Long guestId;
-    private Boolean attending;
-    private Boolean bringingPlusOne;
-    private String plusOneName;
-    private String dietaryRestrictions;
-    private String email;
-    private boolean sendConfirmationEmail;
-    private OffsetDateTime submittedAt;
+    private final Long guestId;
+    private final Boolean attending;
+    private final Boolean bringingPlusOne;
+    private final String plusOneName;
+    private final String dietaryRestrictions;
+    private final String email;
+    private final boolean sendConfirmationEmail;
+    private final OffsetDateTime submittedAt;
 
     public Long getGuestId() {
         return guestId;

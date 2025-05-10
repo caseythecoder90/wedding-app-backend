@@ -136,7 +136,6 @@ public class GuestController {
 
     /**
      * Update guest
-     * @param id Guest ID
      * @param request Updated guest details
      * @return Updated guest entity
      */

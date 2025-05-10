@@ -13,7 +13,6 @@ import jakarta.persistence.CascadeType;
 public class GuestEntity {
 
     @Id
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
