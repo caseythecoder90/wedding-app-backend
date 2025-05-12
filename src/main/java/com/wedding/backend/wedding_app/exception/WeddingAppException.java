@@ -82,4 +82,25 @@ public class WeddingAppException extends RuntimeException {
     public static WeddingAppException internalError(String message) {
         return new WeddingAppException("INTERNAL_SERVER_ERROR", message);
     }
+    
+    // Invitation code related exceptions
+    public static WeddingAppException invalidInvitationCode(String code) {
+        return new WeddingAppException("INVALID_INVITATION_CODE", 
+                String.format("Invalid invitation code: %s", code));
+    }
+    
+    public static WeddingAppException expiredInvitationCode(String code) {
+        return new WeddingAppException("EXPIRED_INVITATION_CODE", 
+                String.format("Invitation code has expired: %s", code));
+    }
+    
+    public static WeddingAppException usedInvitationCode(String code) {
+        return new WeddingAppException("USED_INVITATION_CODE", 
+                String.format("Invitation code has already been used: %s", code));
+    }
+    
+    public static WeddingAppException invitationCodeCreationError(Long guestId) {
+        return new WeddingAppException("INVITATION_CODE_CREATION_ERROR", 
+                String.format("Error creating invitation code for guest: %d", guestId));
+    }
 }

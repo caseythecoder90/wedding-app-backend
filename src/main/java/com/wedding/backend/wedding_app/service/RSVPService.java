@@ -1,8 +1,10 @@
 package com.wedding.backend.wedding_app.service;
 
+import com.wedding.backend.wedding_app.config.EmailConfig;
 import com.wedding.backend.wedding_app.dao.RSVPDao;
 import com.wedding.backend.wedding_app.dto.RSVPRequestDTO;
 import com.wedding.backend.wedding_app.dto.RSVPResponseDTO;
+import com.wedding.backend.wedding_app.dto.RSVPSummaryDTO;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
@@ -10,10 +12,14 @@ import com.wedding.backend.wedding_app.repository.GuestRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -21,15 +27,21 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Service
 public class RSVPService {
 
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a");
+
     private final RSVPDao rsvpDao;
     private final GuestRepository guestRepository;
     private final EmailService emailService;
+    private final EmailConfig emailConfig;
     private final Logger log = LoggerFactory.getLogger(RSVPService.class);
-    
-    public RSVPService(RSVPDao rsvpDao, GuestRepository guestRepository, EmailService emailService) {
+
+    public RSVPService(RSVPDao rsvpDao, GuestRepository guestRepository,
+                      EmailService emailService, EmailConfig emailConfig) {
         this.rsvpDao = rsvpDao;
         this.guestRepository = guestRepository;
         this.emailService = emailService;
+        this.emailConfig = emailConfig;
     }
 
     /**
@@ -93,7 +105,7 @@ public class RSVPService {
         
         List<RSVPResponseDTO> rsvps = rsvpDao.findAllRSVPs().stream()
                 .map(this::mapToRSVPResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
         
         log.info("COMPLETED - Found {} RSVPs", rsvps.size());
         return rsvps;
@@ -106,11 +118,11 @@ public class RSVPService {
      */
     public RSVPResponseDTO submitOrUpdateRSVP(RSVPRequestDTO request) {
         log.info("STARTED - Processing RSVP for guest ID: {}", request.getGuestId());
-        
+
         // Validate the guest exists
         GuestEntity guest = guestRepository.findById(request.getGuestId())
                 .orElseThrow(() -> WeddingAppException.guestNotFound(request.getGuestId()));
-        
+
         // If guest is bringing a plus one, validate they're allowed to
         if (Boolean.TRUE.equals(request.getBringingPlusOne()) && !guest.getPlusOneAllowed()) {
             log.warn("Guest ID: {} attempted to add plus-one but is not allowed", request.getGuestId());
@@ -118,9 +130,14 @@ public class RSVPService {
         }
 
         // If not bringing a plus one, clear the plus one name
-        String plusOneName = Boolean.TRUE.equals(request.getBringingPlusOne()) 
-                ? request.getPlusOneName() 
+        String plusOneName = Boolean.TRUE.equals(request.getBringingPlusOne())
+                ? request.getPlusOneName()
                 : null;
+
+        // Check if this is a new RSVP or an update
+        boolean isExistingRsvp = rsvpDao.findRSVPByGuestId(request.getGuestId()).isPresent();
+        String action = isExistingRsvp ? "updating" : "creating";
+        log.info("{} RSVP for guest ID: {}", action, request.getGuestId());
 
         // Save the RSVP
         RSVPEntity savedRSVP = rsvpDao.saveRSVP(
@@ -137,22 +154,21 @@ public class RSVPService {
             guestRepository.save(guest);
         }
         
-        // Send email confirmation if requested and email is available
+        // Handle email notifications asynchronously
+        // 1. Start guest confirmation email if requested and email is available
         if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
-            try {
-                log.info("Sending RSVP confirmation email to guest: {}", guest.getEmail());
-                emailService.sendRSVPConfirmationEmail(savedRSVP, guest);
-            } catch (Exception e) {
-                // Log the error but don't fail the RSVP process
-                log.error("Failed to send RSVP confirmation email", e);
-            }
+            log.info("Initiating asynchronous guest confirmation email");
+            sendGuestConfirmationEmailAsync(savedRSVP, guest);
         }
+
+        // 2. Always send admin notification (if enabled) - independent of guest confirmation
+        sendAdminNotificationEmailAsync(savedRSVP, guest);
+
+        // No need to wait for async methods - they'll run in the background
         
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(savedRSVP);
 
-        // this logic is wrong need to fix
-        boolean isNewRsvp = savedRSVP.getId() != null && savedRSVP.getId() == 0;
-        log.info("COMPLETED - RSVP {} for guest: {}", isNewRsvp ? "created" : "updated", responseDTO.getGuestName());
+        log.info("COMPLETED - RSVP {} for guest: {}", isExistingRsvp ? "updated" : "created", responseDTO.getGuestName());
 
         return responseDTO;
     }
@@ -182,20 +198,119 @@ public class RSVPService {
     }
 
     /**
+     * Send a confirmation email to the guest asynchronously
+     * @param rsvpEntity The RSVP entity
+     * @param guestEntity The guest entity
+     */
+    @Async
+    public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
+        try {
+            log.info("Asynchronously sending confirmation email to guest: {}", guestEntity.getEmail());
+            emailService.sendRSVPConfirmationEmail(rsvpEntity, guestEntity);
+            log.info("Successfully sent confirmation email to guest: {}", guestEntity.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send confirmation email to guest: {}", guestEntity.getEmail(), e);
+            // Errors are caught and logged but not propagated
+        }
+    }
+
+    /**
+     * Send an admin notification email with RSVP summary asynchronously
+     * @param rsvpEntity The RSVP entity that triggered the notification
+     * @param guestEntity The guest entity
+     */
+    @Async
+    public void sendAdminNotificationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
+        try {
+            // Check if admin notifications are enabled
+            if (!emailConfig.isSendAdminNotifications() ||
+                StringUtils.isBlank(emailConfig.getAdminEmail())) {
+                log.info("Admin notifications are disabled or no admin email configured");
+                return;
+            }
+
+            log.info("Asynchronously sending admin notification email");
+
+            // Create RSVP summary
+            RSVPSummaryDTO summary = buildRsvpSummary();
+
+            // Send admin notification with full summary
+            emailService.sendAdminRsvpNotification(rsvpEntity, guestEntity, summary);
+
+            log.info("Successfully sent admin notification email");
+        } catch (Exception e) {
+            log.error("Failed to send admin notification email", e);
+            // Errors are caught and logged but not propagated
+        }
+    }
+
+    /**
+     * Build a comprehensive summary of all RSVPs
+     * @return An RSVPSummaryDTO containing all stats and lists
+     */
+    private RSVPSummaryDTO buildRsvpSummary() {
+        log.info("Building RSVP summary for admin notification");
+
+        try {
+            // Get all RSVPs
+            List<RSVPResponseDTO> allRsvps = getAllRSVPs();
+
+            // Calculate summary statistics
+            int totalRsvps = allRsvps.size();
+            long totalAttending = allRsvps.stream()
+                    .filter(rsvp -> Boolean.TRUE.equals(rsvp.getAttending()))
+                    .count();
+            long totalNotAttending = totalRsvps - totalAttending;
+
+            // Calculate total guests including plus ones
+            long totalGuests = totalAttending + allRsvps.stream()
+                    .filter(rsvp -> Boolean.TRUE.equals(rsvp.getAttending()) &&
+                           Boolean.TRUE.equals(rsvp.getBringingPlusOne()))
+                    .count();
+
+            // Split into attending and not attending lists
+            List<RSVPResponseDTO> attendingRsvps = allRsvps.stream()
+                    .filter(rsvp -> Boolean.TRUE.equals(rsvp.getAttending()))
+                    .toList();
+
+            List<RSVPResponseDTO> notAttendingRsvps = allRsvps.stream()
+                    .filter(rsvp -> Boolean.FALSE.equals(rsvp.getAttending()))
+                    .toList();
+
+            // Build and return the summary
+            return RSVPSummaryDTO.builder()
+                    .totalRsvps(totalRsvps)
+                    .totalAttending(totalAttending)
+                    .totalNotAttending(totalNotAttending)
+                    .totalGuests(totalGuests)
+                    .attendingRsvps(attendingRsvps)
+                    .notAttendingRsvps(notAttendingRsvps)
+                    .lastUpdated(LocalDateTime.now().format(DATE_FORMATTER))
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Error building RSVP summary", e);
+            // Return an empty summary rather than letting the exception propagate
+            return new RSVPSummaryDTO();
+        }
+    }
+
+    /**
      * Map RSVP entity to response DTO
      * @param rsvp RSVP entity
      * @return RSVP response DTO
      */
     private RSVPResponseDTO mapToRSVPResponseDTO(RSVPEntity rsvp) {
         GuestEntity guest = rsvp.getGuest();
-        String guestName = guest != null 
-                ? guest.getFirstName() + " " + guest.getLastName() 
+        String guestName = guest != null
+                ? guest.getFirstName() + " " + guest.getLastName()
                 : "Unknown Guest";
-                
+
         return RSVPResponseDTO.builder()
                 .id(rsvp.getId())
                 .guestId(guest != null ? guest.getId() : null)
                 .guestName(guestName)
+                .guestEmail(guest != null ? guest.getEmail() : null)
                 .attending(rsvp.getAttending())
                 .bringingPlusOne(rsvp.getBringingPlusOne())
                 .plusOneName(rsvp.getPlusOneName())

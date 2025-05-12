@@ -47,6 +47,16 @@ wedding:
     server:
       url: /
       description: Default Server URL
+  email:
+    attending-template-path: email/attending.ftlh
+    not-attending-template-path: email/not-attending.ftlh
+    admin-notification-template-path: email/admin-rsvp-notif.ftlh
+    attending-subject: "Wedding RSVP Confirmation - We're excited to see you!"
+    not-attending-subject: "Wedding RSVP Confirmation - Thank you for your response!"
+    admin-notification-subject: "New Wedding RSVP Submission"
+    sender-email: caseythecoder90@gmail.com
+    admin-email: caseythecoder90@gmail.com
+    send-admin-notifications: true
 
 # Swagger UI / SpringDoc properties
 springdoc:

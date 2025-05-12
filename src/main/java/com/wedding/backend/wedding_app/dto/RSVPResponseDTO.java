@@ -6,6 +6,7 @@ public class RSVPResponseDTO {
     private Long id;
     private Long guestId;
     private String guestName;
+    private String guestEmail;
     private Boolean attending;
     private Boolean bringingPlusOne;
     private String plusOneName;
@@ -32,9 +33,17 @@ public class RSVPResponseDTO {
     public String getGuestName() {
         return guestName;
     }
-    
+
     public void setGuestName(String guestName) {
         this.guestName = guestName;
+    }
+
+    public String getGuestEmail() {
+        return guestEmail;
+    }
+
+    public void setGuestEmail(String guestEmail) {
+        this.guestEmail = guestEmail;
     }
     
     public Boolean getAttending() {
@@ -81,6 +90,7 @@ public class RSVPResponseDTO {
         this.id = builder.id;
         this.guestId = builder.guestId;
         this.guestName = builder.guestName;
+        this.guestEmail = builder.guestEmail;
         this.attending = builder.attending;
         this.bringingPlusOne = builder.bringingPlusOne;
         this.plusOneName = builder.plusOneName;
@@ -96,6 +106,7 @@ public class RSVPResponseDTO {
         private Long id;
         private Long guestId;
         private String guestName;
+        private String guestEmail;
         private Boolean attending;
         private Boolean bringingPlusOne;
         private String plusOneName;
@@ -114,6 +125,11 @@ public class RSVPResponseDTO {
 
         public Builder guestName(String guestName) {
             this.guestName = guestName;
+            return this;
+        }
+
+        public Builder guestEmail(String guestEmail) {
+            this.guestEmail = guestEmail;
             return this;
         }
 
