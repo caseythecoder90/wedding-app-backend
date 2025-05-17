@@ -27,6 +27,17 @@ public class WeddingServiceConstants {
     public static final String EMAIL_FIELD_GUEST_EMAIL = "guestEmail";
     public static final String EMAIL_FIELD_SUBMISSION_DATE = "submissionDate";
 
+    // Admin notification model fields
+    public static final String ADMIN_FIELD_TOTAL_RSVPS = "totalRsvps";
+    public static final String ADMIN_FIELD_TOTAL_ATTENDING = "totalAttending";
+    public static final String ADMIN_FIELD_TOTAL_NOT_ATTENDING = "totalNotAttending";
+    public static final String ADMIN_FIELD_TOTAL_GUESTS = "totalGuests";
+    public static final String ADMIN_FIELD_ATTENDING_RSVPS = "attendingRsvps";
+    public static final String ADMIN_FIELD_NOT_ATTENDING_RSVPS = "notAttendingRsvps";
+    public static final String ADMIN_FIELD_LAST_UPDATED = "lastUpdated";
+    public static final String ADMIN_FIELD_SUMMARY_ERROR = "summaryError";
+    public static final String ADMIN_FIELD_ERROR_MESSAGE = "errorMessage";
+
     // Email subjects
     public static final String ATTENDING_EMAIL_SUBJECT = "Wedding RSVP Confirmation - We're excited to see you!";
     public static final String NOT_ATTENDING_EMAIL_SUBJECT = "Wedding RSVP Confirmation - Thank you for your response!";

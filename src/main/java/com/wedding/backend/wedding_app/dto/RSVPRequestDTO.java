@@ -1,7 +1,11 @@
 package com.wedding.backend.wedding_app.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import java.time.OffsetDateTime;
 
+@JsonDeserialize(builder = RSVPRequestDTO.Builder.class)
 public class RSVPRequestDTO {
     private final Long guestId;
     private final Boolean attending;
@@ -59,6 +63,7 @@ public class RSVPRequestDTO {
         return new Builder();
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private Long guestId;
         private Boolean attending;

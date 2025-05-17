@@ -1,7 +1,6 @@
 package com.wedding.backend.wedding_app.service;
 
 import com.wedding.backend.wedding_app.config.EmailConfig;
-import com.wedding.backend.wedding_app.dto.RSVPResponseDTO;
 import com.wedding.backend.wedding_app.dto.RSVPSummaryDTO;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
@@ -19,12 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.*;
 
@@ -99,8 +95,6 @@ public class EmailService {
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(guestEntity.getEmail(), subject, htmlContent);
 
-            // Admin notifications are now handled directly by RSVPService
-            // to avoid circular dependencies
 
         } catch (Exception e) {
             log.error("Exception while sending RSVP email: ", e);
@@ -162,18 +156,18 @@ public class EmailService {
 
         try {
             // Add summary data to the model
-            model.put("totalRsvps", rsvpSummary.getTotalRsvps());
-            model.put("totalAttending", rsvpSummary.getTotalAttending());
-            model.put("totalNotAttending", rsvpSummary.getTotalNotAttending());
-            model.put("totalGuests", rsvpSummary.getTotalGuests());
-            model.put("attendingRsvps", rsvpSummary.getAttendingRsvps());
-            model.put("notAttendingRsvps", rsvpSummary.getNotAttendingRsvps());
-            model.put("lastUpdated", rsvpSummary.getLastUpdated());
+            model.put(ADMIN_FIELD_TOTAL_RSVPS, rsvpSummary.getTotalRsvps());
+            model.put(ADMIN_FIELD_TOTAL_ATTENDING, rsvpSummary.getTotalAttending());
+            model.put(ADMIN_FIELD_TOTAL_NOT_ATTENDING, rsvpSummary.getTotalNotAttending());
+            model.put(ADMIN_FIELD_TOTAL_GUESTS, rsvpSummary.getTotalGuests());
+            model.put(ADMIN_FIELD_ATTENDING_RSVPS, rsvpSummary.getAttendingRsvps());
+            model.put(ADMIN_FIELD_NOT_ATTENDING_RSVPS, rsvpSummary.getNotAttendingRsvps());
+            model.put(ADMIN_FIELD_LAST_UPDATED, rsvpSummary.getLastUpdated());
         } catch (Exception e) {
             log.error("Error building RSVP summary for admin notification", e);
             // Add error flag to model
-            model.put("summaryError", true);
-            model.put("errorMessage", "Unable to process RSVP summary: " + e.getMessage());
+            model.put(ADMIN_FIELD_SUMMARY_ERROR, true);
+            model.put(ADMIN_FIELD_ERROR_MESSAGE, "Unable to process RSVP summary: " + e.getMessage());
         }
 
         return model;

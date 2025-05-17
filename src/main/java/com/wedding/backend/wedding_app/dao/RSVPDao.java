@@ -96,7 +96,9 @@ public class RSVPDao {
 
             RSVPEntity rsvp = guest.getRsvp();
             boolean isNewRSVP = rsvp == null;
-            
+
+            log.info("{} RSVP for guest ID: {}", isNewRSVP ? "Creating new" : "Updating existing", guestId);
+
             if (isNewRSVP) {
                 rsvp = new RSVPEntity();
                 rsvp.setGuest(guest);

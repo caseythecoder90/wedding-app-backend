@@ -158,7 +158,6 @@ public class ErrorManagementService {
      * Creates a default error when the error key is not found
      */
     private ErrorDefinition createDefaultError(String errorKey) {
-        log.warn("Error definition not found for key: {}. Using default error.", errorKey);
         return ErrorDefinition.builder()
                 .errorKey(errorKey)
                 .errorCode("500.999")

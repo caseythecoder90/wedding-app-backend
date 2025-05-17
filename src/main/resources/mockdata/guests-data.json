@@ -1,0 +1,142 @@
+[
+  {
+    "firstName": "Connor",
+    "lastName": "Quinn",
+    "email": "businessyas23@gmail.com",
+    "phone": "555-123-4567",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Casey",
+    "lastName": "Swedish",
+    "email": "caseytheswe@gmail.com",
+    "phone": "555-234-5678",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Casey",
+    "lastName": "Davidson",
+    "email": "caseythecoder90@gmail.com",
+    "phone": "555-345-6789",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Tim",
+    "lastName": "Quinn",
+    "email": "casey.quinn@tamu.edu",
+    "phone": "555-456-7890",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Alex",
+    "lastName": "Johnson",
+    "email": "alex.johnson@example.com",
+    "phone": "555-567-8901",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Morgan",
+    "lastName": "Zhang",
+    "email": "morgan.zhang@example.com",
+    "phone": "555-678-9012",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Taylor",
+    "lastName": "Martinez",
+    "email": "taylor.martinez@example.com",
+    "phone": "555-789-0123",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Jordan",
+    "lastName": "Williams",
+    "email": "jordan.williams@example.com",
+    "phone": "555-890-1234",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Riley",
+    "lastName": "Anderson",
+    "email": "riley.anderson@example.com",
+    "phone": "555-901-2345",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Avery",
+    "lastName": "Garcia",
+    "email": "avery.garcia@example.com",
+    "phone": "555-012-3456",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Parker",
+    "lastName": "Davis",
+    "email": "parker.davis@example.com",
+    "phone": "555-111-2222",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Cameron",
+    "lastName": "Rodriguez",
+    "email": "cameron.rodriguez@example.com",
+    "phone": "555-222-3333",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Hayden",
+    "lastName": "Nguyen",
+    "email": "hayden.nguyen@example.com",
+    "phone": "555-333-4444",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Dakota",
+    "lastName": "Smith",
+    "email": "dakota.smith@example.com",
+    "phone": "555-444-5555",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Jamie",
+    "lastName": "Brown",
+    "email": "jamie.brown@example.com",
+    "phone": "555-555-6666",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Skyler",
+    "lastName": "Thompson",
+    "email": "skyler.thompson@example.com",
+    "phone": "555-666-7777",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Peyton",
+    "lastName": "Miller",
+    "email": "peyton.miller@example.com",
+    "phone": "555-777-8888",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Reese",
+    "lastName": "Patel",
+    "email": "reese.patel@example.com",
+    "phone": "555-888-9999",
+    "plusOneAllowed": false
+  },
+  {
+    "firstName": "Quinn",
+    "lastName": "Chen",
+    "email": "quinn.chen@example.com",
+    "phone": "555-999-0000",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Blake",
+    "lastName": "Wilson",
+    "email": "blake.wilson@example.com",
+    "phone": "555-000-1111",
+    "plusOneAllowed": true
+  }
+]

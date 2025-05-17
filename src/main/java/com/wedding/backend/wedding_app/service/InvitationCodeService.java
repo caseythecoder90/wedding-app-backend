@@ -23,6 +23,7 @@ import java.util.Random;
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CHARSET;
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CODE_LENGTH;
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CODE_PREFIX;
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.SPACE;
 
 @Service
 public class InvitationCodeService {
@@ -172,7 +173,7 @@ public class InvitationCodeService {
                 rsvpResponseDTO = RSVPResponseDTO.builder()
                         .id(rsvp.getId())
                         .guestId(guest.getId())
-                        .guestName(guest.getFirstName() + " " + guest.getLastName())
+                        .guestName(guest.getFirstName() + SPACE + guest.getLastName())
                         .attending(rsvp.getAttending())
                         .bringingPlusOne(rsvp.getBringingPlusOne())
                         .plusOneName(rsvp.getPlusOneName())

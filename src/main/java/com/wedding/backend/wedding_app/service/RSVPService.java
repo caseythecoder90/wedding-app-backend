@@ -134,11 +134,6 @@ public class RSVPService {
                 ? request.getPlusOneName()
                 : null;
 
-        // Check if this is a new RSVP or an update
-        boolean isExistingRsvp = rsvpDao.findRSVPByGuestId(request.getGuestId()).isPresent();
-        String action = isExistingRsvp ? "updating" : "creating";
-        log.info("{} RSVP for guest ID: {}", action, request.getGuestId());
-
         // Save the RSVP
         RSVPEntity savedRSVP = rsvpDao.saveRSVP(
                 request.getGuestId(),
@@ -164,11 +159,10 @@ public class RSVPService {
         // 2. Always send admin notification (if enabled) - independent of guest confirmation
         sendAdminNotificationEmailAsync(savedRSVP, guest);
 
-        // No need to wait for async methods - they'll run in the background
         
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(savedRSVP);
 
-        log.info("COMPLETED - RSVP {} for guest: {}", isExistingRsvp ? "updated" : "created", responseDTO.getGuestName());
+        log.info("COMPLETED - RSVP processed for guest: {}", responseDTO.getGuestName());
 
         return responseDTO;
     }
