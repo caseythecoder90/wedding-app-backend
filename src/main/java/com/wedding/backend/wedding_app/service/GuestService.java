@@ -34,7 +34,6 @@ public class GuestService {
     public GuestEntity addGuest(String firstName, String lastName, String email, String phone, boolean plusOneAllowed) {
         log.info("STARTED - Adding new guest: {} {}", firstName, lastName);
         
-        // Check if guest already exists (the DAO will handle this, but we can catch it early)
         Optional<GuestEntity> existingGuest = guestDao.findGuestByFullName(firstName, lastName);
         if (existingGuest.isPresent()) {
             log.info("COMPLETED - Guest already exists with ID: {}", existingGuest.get().getId());

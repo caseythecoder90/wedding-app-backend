@@ -48,7 +48,7 @@ public class InvitationCodeService {
     public String generateUniqueCode() {
         log.info("BEGIN - Generating unique invitation code");
 
-        StringBuilder sb = new StringBuilder(CODE_PREFIX + "-");
+        StringBuilder sb = new StringBuilder(CODE_PREFIX);
         Random random = new Random();
 
         for (int i = 0; i < CODE_LENGTH; i++) {

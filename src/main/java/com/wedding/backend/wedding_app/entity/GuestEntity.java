@@ -1,12 +1,17 @@
 package com.wedding.backend.wedding_app.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "guests")
@@ -23,7 +28,12 @@ public class GuestEntity {
     private Boolean plusOneAllowed;
 
     @OneToOne(mappedBy = "guest", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private RSVPEntity rsvp;
+    
+    @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<InvitationCodeEntity> invitationCodes = new ArrayList<>();
 
     public GuestEntity() {
     }
@@ -40,6 +50,7 @@ public class GuestEntity {
         this.phone = builder.phone;
         this.plusOneAllowed = builder.plusOneAllowed;
         this.rsvp = builder.rsvp;
+        this.invitationCodes = builder.invitationCodes;
     }
 
     // Builder class
@@ -50,6 +61,7 @@ public class GuestEntity {
         private String phone;
         private Boolean plusOneAllowed;
         private RSVPEntity rsvp;
+        private List<InvitationCodeEntity> invitationCodes = new ArrayList<>();
 
         public Builder firstName(String firstName) {
             this.firstName = firstName;
@@ -78,6 +90,11 @@ public class GuestEntity {
 
         public Builder rsvp(RSVPEntity rsvp) {
             this.rsvp = rsvp;
+            return this;
+        }
+        
+        public Builder invitationCodes(List<InvitationCodeEntity> invitationCodes) {
+            this.invitationCodes = invitationCodes;
             return this;
         }
 
@@ -152,6 +169,14 @@ public class GuestEntity {
 
     public void setRsvp(RSVPEntity rsvp) {
         this.rsvp = rsvp;
+    }
+    
+    public List<InvitationCodeEntity> getInvitationCodes() {
+        return invitationCodes;
+    }
+    
+    public void setInvitationCodes(List<InvitationCodeEntity> invitationCodes) {
+        this.invitationCodes = invitationCodes;
     }
     
     // Equals and HashCode

@@ -1,6 +1,6 @@
 package com.wedding.backend.wedding_app.entity;
 
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -20,6 +20,7 @@ public class RSVPEntity {
 
     @OneToOne
     @JoinColumn(name = "guest_id")
+    @JsonBackReference
     private GuestEntity guest;
 
     private Boolean attending;
