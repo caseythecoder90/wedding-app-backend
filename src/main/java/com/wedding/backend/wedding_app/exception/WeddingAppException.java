@@ -61,6 +61,15 @@ public class WeddingAppException extends RuntimeException {
         return new WeddingAppException("RSVP_NOT_FOUND", id);
     }
 
+    public static WeddingAppException donationNotFound(Long id) {
+        return new WeddingAppException("DONATION_NOT_FOUND", id);
+    }
+
+    public static WeddingAppException entityNotFound(String entityName, Long id) {
+        return new WeddingAppException("ENTITY_NOT_FOUND", 
+                String.format("%s not found with id: %d", entityName, id));
+    }
+
     public static WeddingAppException duplicateRSVP(Long guestId) {
         return new WeddingAppException("RSVP_ALREADY_SUBMITTED", guestId);
     }

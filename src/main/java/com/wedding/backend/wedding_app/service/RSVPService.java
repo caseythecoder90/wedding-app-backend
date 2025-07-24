@@ -19,10 +19,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Service
 public class RSVPService {
@@ -77,7 +73,7 @@ public class RSVPService {
         }
         
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(rsvpOpt.get());
-        log.info("COMPLETED - Found RSVP for guest: {}", responseDTO.getGuestName());
+        log.info("COMPLETED - Found RSVP for guest: {} [Used guestId]", responseDTO.getGuestName());
         
         return responseDTO;
     }

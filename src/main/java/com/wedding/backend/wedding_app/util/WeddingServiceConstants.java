@@ -52,4 +52,41 @@ public class WeddingServiceConstants {
     public static final String CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     public static final int CODE_LENGTH = 6;
 
+
+    // Registry specific errors
+    public static final String REGISTRY_NOT_FOUND = "REGISTRY_NOT_FOUND";
+    public static final String REGISTRY_INACTIVE = "REGISTRY_INACTIVE";
+    public static final String DONATION_NOT_FOUND = "DONATION_NOT_FOUND";
+    public static final String INVALID_DONATION_AMOUNT = "INVALID_DONATION_AMOUNT";
+    public static final String DUPLICATE_DONATION = "DUPLICATE_DONATION";
+    public static final String DONATION_ALREADY_CONFIRMED = "DONATION_ALREADY_CONFIRMED";
+    public static final String THANK_YOU_ALREADY_SENT = "THANK_YOU_ALREADY_SENT";
+    public static final String DONATION_NOT_CONFIRMED = "DONATION_NOT_CONFIRMED";
+    public static final String TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND";
+    public static final String DEFAULT_TEMPLATE_REQUIRED = "DEFAULT_TEMPLATE_REQUIRED";
+
+    // Email template paths (add to WeddingServiceConstants.java)
+    public static final String DONATION_CONFIRMATION_TEMPLATE = "email/donation-confirmation.ftlh";
+    public static final String DONATION_THANK_YOU_TEMPLATE = "email/donation-thank-you.ftlh";
+
+    // Email subjects (add to WeddingServiceConstants.java)
+    public static final String DONATION_CONFIRMATION_SUBJECT = "Thank you for your honeymoon contribution!";
+    public static final String DONATION_THANK_YOU_SUBJECT = "Thank you for your generous honeymoon gift! 💕";
+
+    // Email field constants for donation templates (add to WeddingServiceConstants.java)
+    public static final String EMAIL_FIELD_DONOR_NAME = "donorName";
+    public static final String EMAIL_FIELD_DONOR_EMAIL = "donorEmail";
+    public static final String EMAIL_FIELD_DONOR_PHONE = "donorPhone";
+    public static final String EMAIL_FIELD_DONATION_AMOUNT = "donationAmount";
+    public static final String EMAIL_FIELD_PAYMENT_METHOD = "paymentMethod";
+    public static final String EMAIL_FIELD_PAYMENT_REFERENCE = "paymentReference";
+    public static final String EMAIL_FIELD_DONATION_MESSAGE = "donationMessage";
+    public static final String EMAIL_FIELD_DONATION_ID = "donationId";
+    public static final String EMAIL_FIELD_DONATION_DATE = "donationDate";
+    public static final String EMAIL_FIELD_CONFIRMED_DATE = "confirmedDate";
+    public static final String EMAIL_FIELD_DONATION_STATUS = "donationStatus";
+    public static final String EMAIL_FIELD_HAS_PAYMENT_REFERENCE = "hasPaymentReference";
+    public static final String EMAIL_FIELD_HAS_DONATION_MESSAGE = "hasDonationMessage";
+    public static final String EMAIL_FIELD_HAS_PHONE = "hasPhone";
+
 }

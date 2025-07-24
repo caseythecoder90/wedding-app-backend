@@ -2,8 +2,11 @@ package com.wedding.backend.wedding_app.service;
 
 import com.wedding.backend.wedding_app.config.EmailConfig;
 import com.wedding.backend.wedding_app.dto.RSVPSummaryDTO;
+import com.wedding.backend.wedding_app.entity.DonationEntity;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
+import com.wedding.backend.wedding_app.enums.DonationStatus;
+import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -26,8 +29,6 @@ import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.*;
 
 /**
  * Service for handling all email functionality in the application
- *
- * pssx tmse xork ukhy
  */
 @Service
 public class EmailService {
@@ -94,7 +95,8 @@ public class EmailService {
             // Process the template and send the email
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(guestEntity.getEmail(), subject, htmlContent);
-
+            
+            log.info("COMPLETED - RSVP confirmation email sent successfully to: {}", guestEntity.getEmail());
 
         } catch (Exception e) {
             log.error("Exception while sending RSVP email: ", e);
@@ -132,6 +134,8 @@ public class EmailService {
             // Process the template and send the email
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(emailConfig.getAdminEmail(), subject, htmlContent);
+            
+            log.info("COMPLETED - Admin notification sent successfully");
 
         } catch (Exception e) {
             log.error("Exception while sending admin notification: ", e);
@@ -249,21 +253,189 @@ public class EmailService {
         mailSender.send(mimeMessage);
         log.info("Email sent successfully to: {}", emailAddress);
     }
+
+    /**
+     * Sends a donation confirmation email to the donor
+     * @param donation The donation entity
+     */
+    public void sendDonationConfirmationEmail(DonationEntity donation) {
+        log.info("STARTED - Sending donation confirmation email to: {}", donation.getDonorEmail());
+
+        // Validate email
+        if (StringUtils.isBlank(donation.getDonorEmail())) {
+            log.warn("Cannot send donation confirmation email - donor email is invalid");
+            return;
+        }
+
+        try {
+            // Get template path from config
+            String templatePath = emailConfig.getDonationConfirmationTemplatePath();
+
+            // Fallback to constant if config value is not set
+            if (StringUtils.isBlank(templatePath)) {
+                templatePath = DONATION_CONFIRMATION_TEMPLATE;
+            }
+
+            // Get subject from config
+            String subject = emailConfig.getDonationConfirmationSubject();
+
+            // Fallback to constant if config value is not set
+            if (StringUtils.isBlank(subject)) {
+                subject = DONATION_CONFIRMATION_SUBJECT;
+            }
+
+            // Build the template model
+            Map<String, Object> model = buildDonationConfirmationEmailModel(donation);
+
+            // Process the template and send the email
+            String htmlContent = processTemplate(templatePath, model);
+            sendHtmlEmail(donation.getDonorEmail(), subject, htmlContent);
+
+            log.info("COMPLETED - Donation confirmation email sent successfully to: {}", donation.getDonorEmail());
+
+        } catch (IOException e) {
+            log.error("Template not found for donation confirmation email", e);
+            throw WeddingAppException.internalError("Email template not found: " + e.getMessage());
+        } catch (TemplateException e) {
+            log.error("Template processing error for donation confirmation email", e);
+            throw WeddingAppException.internalError("Email template processing failed: " + e.getMessage());
+        } catch (MessagingException e) {
+            log.error("Failed to send donation confirmation email to: {}", donation.getDonorEmail(), e);
+            throw WeddingAppException.internalError("Failed to send email: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error sending donation confirmation email", e);
+            throw WeddingAppException.internalError("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sends a thank you email to the donor using the configured template
+     * @param donation The confirmed donation entity
+     */
+    public void sendDonationThankYouEmail(DonationEntity donation) {
+        log.info("STARTED - Sending donation thank you email to: {}", donation.getDonorEmail());
+
+        // Validate email
+        if (StringUtils.isBlank(donation.getDonorEmail())) {
+            log.warn("Cannot send thank you email - donor email is invalid");
+            return;
+        }
+
+        if (donation.getStatus() != DonationStatus.CONFIRMED) {
+            log.warn("Cannot send thank you email - donation is not confirmed");
+            throw WeddingAppException.validationError("Cannot send thank you for unconfirmed donation");
+        }
+
+        try {
+            // Get template path from config
+            String templatePath = emailConfig.getDonationThankYouTemplatePath();
+
+            // Fallback to constant if config value is not set
+            if (StringUtils.isBlank(templatePath)) {
+                templatePath = DONATION_THANK_YOU_TEMPLATE;
+            }
+
+            // Get subject from config
+            String subject = emailConfig.getDonationThankYouSubject();
+
+            // Fallback to constant if config value is not set
+            if (StringUtils.isBlank(subject)) {
+                subject = DONATION_THANK_YOU_SUBJECT;
+            }
+
+            // Build the template model
+            Map<String, Object> model = buildDonationThankYouEmailModel(donation);
+
+            // Process the template and send the email
+            String htmlContent = processTemplate(templatePath, model);
+            sendHtmlEmail(donation.getDonorEmail(), subject, htmlContent);
+
+            log.info("COMPLETED - Thank you email sent successfully to: {}", donation.getDonorEmail());
+
+        } catch (IOException e) {
+            log.error("Template not found for donation thank you email", e);
+            throw WeddingAppException.internalError("Email template not found: " + e.getMessage());
+        } catch (TemplateException e) {
+            log.error("Template processing error for donation thank you email", e);
+            throw WeddingAppException.internalError("Email template processing failed: " + e.getMessage());
+        } catch (MessagingException e) {
+            log.error("Failed to send thank you email to: {}", donation.getDonorEmail(), e);
+            throw WeddingAppException.internalError("Failed to send email: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error sending donation thank you email", e);
+            throw WeddingAppException.internalError("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Build a model map for donation confirmation emails
+     * @param donation The donation entity
+     * @return Map containing all template variables
+     */
+    private Map<String, Object> buildDonationConfirmationEmailModel(DonationEntity donation) {
+        Map<String, Object> model = new HashMap<>();
+
+        // Donor information
+        model.put(EMAIL_FIELD_DONOR_NAME, donation.getDonorName());
+        model.put(EMAIL_FIELD_DONOR_EMAIL, donation.getDonorEmail());
+        model.put(EMAIL_FIELD_DONOR_PHONE, donation.getDonorPhone());
+
+        // Donation information
+        model.put(EMAIL_FIELD_DONATION_AMOUNT, donation.getAmount());
+        model.put(EMAIL_FIELD_PAYMENT_METHOD, donation.getPaymentMethod().getDisplayName());
+        model.put(EMAIL_FIELD_PAYMENT_REFERENCE, donation.getPaymentReference());
+        model.put(EMAIL_FIELD_DONATION_MESSAGE, donation.getMessage());
+        model.put(EMAIL_FIELD_DONATION_ID, donation.getId());
+
+        // Add donation date formatted for display
+        if (donation.getDonationDate() != null) {
+            model.put(EMAIL_FIELD_DONATION_DATE,
+                    donation.getDonationDate().format(DATE_FORMATTER));
+        }
+
+        // Add status information
+        model.put(EMAIL_FIELD_DONATION_STATUS, donation.getStatus().getDisplayName());
+
+        // Add boolean flags for template conditionals
+        model.put(EMAIL_FIELD_HAS_PAYMENT_REFERENCE, StringUtils.isNotBlank(donation.getPaymentReference()));
+        model.put(EMAIL_FIELD_HAS_DONATION_MESSAGE, StringUtils.isNotBlank(donation.getMessage()));
+        model.put(EMAIL_FIELD_HAS_PHONE, StringUtils.isNotBlank(donation.getDonorPhone()));
+
+        return model;
+    }
+
+    /**
+     * Build a model map for donation thank you emails
+     * @param donation The donation entity
+     * @return Map containing all template variables
+     */
+    private Map<String, Object> buildDonationThankYouEmailModel(DonationEntity donation) {
+        Map<String, Object> model = new HashMap<>();
+
+        // Donor information
+        model.put(EMAIL_FIELD_DONOR_NAME, donation.getDonorName());
+        model.put(EMAIL_FIELD_DONOR_EMAIL, donation.getDonorEmail());
+
+        // Donation information
+        model.put(EMAIL_FIELD_DONATION_AMOUNT, donation.getAmount());
+        model.put(EMAIL_FIELD_PAYMENT_METHOD, donation.getPaymentMethod().getDisplayName());
+        model.put(EMAIL_FIELD_DONATION_MESSAGE, donation.getMessage());
+        model.put(EMAIL_FIELD_DONATION_ID, donation.getId());
+
+        // Add donation and confirmation dates formatted for display
+        if (donation.getDonationDate() != null) {
+            model.put(EMAIL_FIELD_DONATION_DATE,
+                    donation.getDonationDate().format(DATE_FORMATTER));
+        }
+
+        if (donation.getConfirmedDate() != null) {
+            model.put(EMAIL_FIELD_CONFIRMED_DATE,
+                    donation.getConfirmedDate().format(DATE_FORMATTER));
+        }
+
+        // Add boolean flags for template conditionals
+        model.put(EMAIL_FIELD_HAS_DONATION_MESSAGE, StringUtils.isNotBlank(donation.getMessage()));
+        
+        return model;
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -184,9 +184,7 @@ public class ExceptionHandlingController {
                  VALIDATION_ERROR, INVITATION_CODE_CREATION_ERROR -> HttpStatus.BAD_REQUEST;
                  
             case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
-            
-            case DATABASE_ERROR, INTERNAL_SERVER_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
-            
+
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

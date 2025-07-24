@@ -1,4 +1,4 @@
-package dao;
+package com.wedding.backend.wedding_app.dao;
 
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;

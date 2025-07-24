@@ -57,6 +57,10 @@ wedding:
     sender-email: caseythecoder90@gmail.com
     admin-email: caseythecoder90@gmail.com
     send-admin-notifications: true
+    donation-confirmation-template-path: email/donation-confirmation.ftlh
+    donation-thank-you-template-path: email/donation-thank-you.ftlh
+    donation-confirmation-subject: "Thank you for your honeymoon contribution!"
+    donation-thank-you-subject: "Thank you for your generous honeymoon gift! 💕"
 
 # Swagger UI / SpringDoc properties
 springdoc:

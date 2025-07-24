@@ -26,6 +26,44 @@ public class EmailConfig {
     
     // Feature flags
     private boolean sendAdminNotifications;
+
+    private String donationConfirmationTemplatePath;
+    private String donationThankYouTemplatePath;
+    private String donationConfirmationSubject;
+    private String donationThankYouSubject;
+
+    // Add getters:
+    public String getDonationConfirmationTemplatePath() {
+        return donationConfirmationTemplatePath;
+    }
+
+    public void setDonationConfirmationTemplatePath(String donationConfirmationTemplatePath) {
+        this.donationConfirmationTemplatePath = donationConfirmationTemplatePath;
+    }
+
+    public String getDonationThankYouTemplatePath() {
+        return donationThankYouTemplatePath;
+    }
+
+    public void setDonationThankYouTemplatePath(String donationThankYouTemplatePath) {
+        this.donationThankYouTemplatePath = donationThankYouTemplatePath;
+    }
+
+    public String getDonationConfirmationSubject() {
+        return donationConfirmationSubject;
+    }
+
+    public void setDonationConfirmationSubject(String donationConfirmationSubject) {
+        this.donationConfirmationSubject = donationConfirmationSubject;
+    }
+
+    public String getDonationThankYouSubject() {
+        return donationThankYouSubject;
+    }
+
+    public void setDonationThankYouSubject(String donationThankYouSubject) {
+        this.donationThankYouSubject = donationThankYouSubject;
+    }
     
     // Getters and setters
     public String getAttendingTemplatePath() {
