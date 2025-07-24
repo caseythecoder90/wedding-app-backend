@@ -1,4 +1,4 @@
-package com.wedding.backend.wedding_app.dao;
+package dao;
 
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.InvitationCodeEntity;
@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 

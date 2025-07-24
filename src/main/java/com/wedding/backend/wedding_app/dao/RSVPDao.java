@@ -1,8 +1,7 @@
-package com.wedding.backend.wedding_app.dao;
+package dao;
 
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
-import com.wedding.backend.wedding_app.exception.DatabaseException;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
 import com.wedding.backend.wedding_app.repository.RSVPRespository;
