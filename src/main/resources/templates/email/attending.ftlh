@@ -36,7 +36,7 @@
         Casey and Yasmim</p>
     </div>
     <div class="footer">
-        <p>If you need to edit your RSVP, you can search for your name at www.website.com and edit the form.</p>
+        <p>If you need to edit your RSVP, you can search for your name at www.caseylovesyas.com and edit the form.</p>
     </div>
 </body>
 </html>

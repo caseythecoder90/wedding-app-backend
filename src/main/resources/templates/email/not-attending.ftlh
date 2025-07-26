@@ -25,7 +25,7 @@
         Casey and Yasmim</p>
     </div>
     <div class="footer">
-        <p>If your plans change, you can search for your name at www.website.com and edit the form.</p>
+        <p>If your plans change, you can search for your name at www.caseylovesyas.com and edit the form.</p>
     </div>
 </body>
 </html>
