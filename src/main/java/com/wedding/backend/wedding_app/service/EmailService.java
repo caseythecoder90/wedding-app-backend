@@ -65,34 +65,17 @@ public class EmailService {
         boolean isAttending = rsvpEntity.getAttending();
 
         try {
-            // Get template path from config
+
             String templatePath = isAttending
                     ? emailConfig.getAttendingTemplatePath()
                     : emailConfig.getNotAttendingTemplatePath();
 
-            // Fallback to constants if config values are not set
-            if (StringUtils.isBlank(templatePath)) {
-                templatePath = isAttending
-                        ? ATTENDING_RSVP_CONFIRMATION
-                        : NOT_ATTENDING_RSVP_CONFIRMATION;
-            }
-
-            // Get subject from config
             String subject = isAttending
                     ? emailConfig.getAttendingSubject()
                     : emailConfig.getNotAttendingSubject();
 
-            // Fallback to constants if config values are not set
-            if (StringUtils.isBlank(subject)) {
-                subject = isAttending
-                        ? ATTENDING_EMAIL_SUBJECT
-                        : NOT_ATTENDING_EMAIL_SUBJECT;
-            }
-
-            // Build the template model
             Map<String, Object> model = buildRsvpEmailModel(rsvpEntity, guestEntity);
 
-            // Process the template and send the email
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(guestEntity.getEmail(), subject, htmlContent);
             
@@ -243,10 +226,7 @@ public class EmailService {
         helper.setSubject(emailSubject);
         helper.setText(htmlContent, true);
 
-        // Get sender email from config or use default
-        String senderEmail = StringUtils.isNotBlank(emailConfig.getSenderEmail())
-                ? emailConfig.getSenderEmail()
-                : "caseythecoder90@gmail.com";
+        String senderEmail = emailConfig.getSenderEmail();
 
         helper.setFrom(senderEmail);
 
@@ -261,33 +241,18 @@ public class EmailService {
     public void sendDonationConfirmationEmail(DonationEntity donation) {
         log.info("STARTED - Sending donation confirmation email to: {}", donation.getDonorEmail());
 
-        // Validate email
         if (StringUtils.isBlank(donation.getDonorEmail())) {
             log.warn("Cannot send donation confirmation email - donor email is invalid");
             return;
         }
 
         try {
-            // Get template path from config
+
             String templatePath = emailConfig.getDonationConfirmationTemplatePath();
-
-            // Fallback to constant if config value is not set
-            if (StringUtils.isBlank(templatePath)) {
-                templatePath = DONATION_CONFIRMATION_TEMPLATE;
-            }
-
-            // Get subject from config
             String subject = emailConfig.getDonationConfirmationSubject();
 
-            // Fallback to constant if config value is not set
-            if (StringUtils.isBlank(subject)) {
-                subject = DONATION_CONFIRMATION_SUBJECT;
-            }
-
-            // Build the template model
             Map<String, Object> model = buildDonationConfirmationEmailModel(donation);
 
-            // Process the template and send the email
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(donation.getDonorEmail(), subject, htmlContent);
 
