@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @JsonDeserialize(builder = RSVPRequestDTO.Builder.class)
 public class RSVPRequestDTO {
@@ -15,6 +16,9 @@ public class RSVPRequestDTO {
     private final String email;
     private final boolean sendConfirmationEmail;
     private final OffsetDateTime submittedAt;
+    
+    // Family-related fields
+    private final List<FamilyMemberRSVPRequest> familyMembers;
 
     public Long getGuestId() {
         return guestId;
@@ -47,6 +51,10 @@ public class RSVPRequestDTO {
     public OffsetDateTime getSubmittedAt() {
         return submittedAt;
     }
+    
+    public List<FamilyMemberRSVPRequest> getFamilyMembers() {
+        return familyMembers;
+    }
 
     private RSVPRequestDTO(Builder builder) {
         this.guestId = builder.guestId;
@@ -57,6 +65,7 @@ public class RSVPRequestDTO {
         this.email = builder.email;
         this.sendConfirmationEmail = builder.sendConfirmationEmail;
         this.submittedAt = builder.submittedAt;
+        this.familyMembers = builder.familyMembers;
     }
 
     public static Builder builder() {
@@ -73,6 +82,7 @@ public class RSVPRequestDTO {
         private String email;
         private boolean sendConfirmationEmail;
         private OffsetDateTime submittedAt;
+        private List<FamilyMemberRSVPRequest> familyMembers;
 
         public Builder guestId(Long guestId) {
             this.guestId = guestId;
@@ -113,9 +123,88 @@ public class RSVPRequestDTO {
             this.submittedAt = submittedAt;
             return this;
         }
+        
+        public Builder familyMembers(List<FamilyMemberRSVPRequest> familyMembers) {
+            this.familyMembers = familyMembers;
+            return this;
+        }
 
         public RSVPRequestDTO build() {
             return new RSVPRequestDTO(this);
+        }
+    }
+    
+    // Nested class for family member RSVP data
+    public static class FamilyMemberRSVPRequest {
+        private Long familyMemberId; // null for new family members
+        private String firstName;
+        private String lastName;
+        private String ageGroup;
+        private Boolean isAttending;
+        private String dietaryRestrictions;
+        
+        // Default constructor for Jackson
+        public FamilyMemberRSVPRequest() {}
+        
+        // Getters and Setters
+        public Long getFamilyMemberId() {
+            return familyMemberId;
+        }
+        
+        public void setFamilyMemberId(Long familyMemberId) {
+            this.familyMemberId = familyMemberId;
+        }
+        
+        public String getFirstName() {
+            return firstName;
+        }
+        
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
+        
+        public String getLastName() {
+            return lastName;
+        }
+        
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
+        
+        public String getAgeGroup() {
+            return ageGroup;
+        }
+        
+        public void setAgeGroup(String ageGroup) {
+            this.ageGroup = ageGroup;
+        }
+        
+        public Boolean getIsAttending() {
+            return isAttending;
+        }
+        
+        public void setIsAttending(Boolean isAttending) {
+            this.isAttending = isAttending;
+        }
+        
+        public String getDietaryRestrictions() {
+            return dietaryRestrictions;
+        }
+        
+        public void setDietaryRestrictions(String dietaryRestrictions) {
+            this.dietaryRestrictions = dietaryRestrictions;
+        }
+        
+        @Override
+        public String toString() {
+            return "FamilyMemberRSVPRequest{" +
+                    "familyMemberId=" + familyMemberId +
+                    ", firstName='" + firstName + '\'' +
+                    ", lastName='" + lastName + '\'' +
+                    ", ageGroup='" + ageGroup + '\'' +
+                    ", isAttending=" + isAttending +
+                    ", dietaryRestrictions='" + dietaryRestrictions + '\'' +
+                    '}';
         }
     }
 }

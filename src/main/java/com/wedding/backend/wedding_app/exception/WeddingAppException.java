@@ -112,4 +112,28 @@ public class WeddingAppException extends RuntimeException {
         return new WeddingAppException("INVITATION_CODE_CREATION_ERROR", 
                 String.format("Error creating invitation code for guest: %d", guestId));
     }
+    
+    // Family-related exceptions
+    public static WeddingAppException familyGroupNotFound(Long id) {
+        return new WeddingAppException("FAMILY_GROUP_NOT_FOUND", id);
+    }
+    
+    public static WeddingAppException familyMemberNotFound(Long id) {
+        return new WeddingAppException("FAMILY_MEMBER_NOT_FOUND", id);
+    }
+    
+    public static WeddingAppException guestAlreadyPrimaryContact(Long guestId) {
+        return new WeddingAppException("GUEST_ALREADY_PRIMARY_CONTACT", 
+                String.format("Guest %d is already a primary contact for another family group", guestId));
+    }
+    
+    public static WeddingAppException familyGroupFull(Long familyGroupId, int maxAttendees) {
+        return new WeddingAppException("FAMILY_GROUP_FULL", 
+                String.format("Family group %d is full (max attendees: %d)", familyGroupId, maxAttendees));
+    }
+    
+    public static WeddingAppException invalidFamilyGroupSize(int size) {
+        return new WeddingAppException("INVALID_FAMILY_GROUP_SIZE", 
+                String.format("Invalid family group size: %d", size));
+    }
 }

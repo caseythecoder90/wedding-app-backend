@@ -1,10 +1,16 @@
 package com.wedding.backend.wedding_app.dto;
 
+import java.util.List;
 
 public class InvitationValidationResponseDTO {
     private GuestResponseDTO guest;
     private RSVPResponseDTO existingRsvp;
     private boolean hasExistingRsvp;
+    
+    // Family-related fields
+    private FamilyGroupResponseDTO familyGroup;
+    private List<FamilyMemberResponseDTO> familyMembers;
+    private boolean isFamily;
     
     // Default constructor
     public InvitationValidationResponseDTO() {
@@ -15,6 +21,9 @@ public class InvitationValidationResponseDTO {
         this.guest = builder.guest;
         this.existingRsvp = builder.existingRsvp;
         this.hasExistingRsvp = builder.hasExistingRsvp;
+        this.familyGroup = builder.familyGroup;
+        this.familyMembers = builder.familyMembers;
+        this.isFamily = builder.isFamily;
     }
     
     // Getters and Setters
@@ -42,6 +51,30 @@ public class InvitationValidationResponseDTO {
         this.hasExistingRsvp = hasExistingRsvp;
     }
     
+    public FamilyGroupResponseDTO getFamilyGroup() {
+        return familyGroup;
+    }
+    
+    public void setFamilyGroup(FamilyGroupResponseDTO familyGroup) {
+        this.familyGroup = familyGroup;
+    }
+    
+    public List<FamilyMemberResponseDTO> getFamilyMembers() {
+        return familyMembers;
+    }
+    
+    public void setFamilyMembers(List<FamilyMemberResponseDTO> familyMembers) {
+        this.familyMembers = familyMembers;
+    }
+    
+    public boolean isFamily() {
+        return isFamily;
+    }
+    
+    public void setFamily(boolean family) {
+        isFamily = family;
+    }
+    
     // Builder pattern
     public static Builder builder() {
         return new Builder();
@@ -51,6 +84,9 @@ public class InvitationValidationResponseDTO {
         private GuestResponseDTO guest;
         private RSVPResponseDTO existingRsvp;
         private boolean hasExistingRsvp;
+        private FamilyGroupResponseDTO familyGroup;
+        private List<FamilyMemberResponseDTO> familyMembers;
+        private boolean isFamily;
         
         public Builder guest(GuestResponseDTO guest) {
             this.guest = guest;
@@ -67,6 +103,21 @@ public class InvitationValidationResponseDTO {
             return this;
         }
         
+        public Builder familyGroup(FamilyGroupResponseDTO familyGroup) {
+            this.familyGroup = familyGroup;
+            return this;
+        }
+        
+        public Builder familyMembers(List<FamilyMemberResponseDTO> familyMembers) {
+            this.familyMembers = familyMembers;
+            return this;
+        }
+        
+        public Builder isFamily(boolean isFamily) {
+            this.isFamily = isFamily;
+            return this;
+        }
+        
         public InvitationValidationResponseDTO build() {
             return new InvitationValidationResponseDTO(this);
         }
@@ -78,6 +129,9 @@ public class InvitationValidationResponseDTO {
                 "guest=" + guest +
                 ", existingRsvp=" + existingRsvp +
                 ", hasExistingRsvp=" + hasExistingRsvp +
+                ", familyGroup=" + familyGroup +
+                ", familyMembers=" + familyMembers +
+                ", isFamily=" + isFamily +
                 '}';
     }
 }

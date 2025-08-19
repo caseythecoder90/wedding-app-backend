@@ -1,6 +1,7 @@
 package com.wedding.backend.wedding_app.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -8,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.CascadeType;
 
 import java.util.ArrayList;
@@ -26,6 +29,12 @@ public class GuestEntity {
     private String email;
     private String phone;
     private Boolean plusOneAllowed;
+    private Boolean isPrimaryContact = false;
+
+    @ManyToOne
+    @JoinColumn(name = "family_group_id")
+    @JsonBackReference
+    private FamilyGroupEntity familyGroup;
 
     @OneToOne(mappedBy = "guest", cascade = CascadeType.ALL)
     @JsonManagedReference
@@ -49,6 +58,8 @@ public class GuestEntity {
         this.email = builder.email;
         this.phone = builder.phone;
         this.plusOneAllowed = builder.plusOneAllowed;
+        this.isPrimaryContact = builder.isPrimaryContact;
+        this.familyGroup = builder.familyGroup;
         this.rsvp = builder.rsvp;
         this.invitationCodes = builder.invitationCodes;
     }
@@ -60,6 +71,8 @@ public class GuestEntity {
         private String email;
         private String phone;
         private Boolean plusOneAllowed;
+        private Boolean isPrimaryContact;
+        private FamilyGroupEntity familyGroup;
         private RSVPEntity rsvp;
         private List<InvitationCodeEntity> invitationCodes = new ArrayList<>();
 
@@ -85,6 +98,16 @@ public class GuestEntity {
 
         public Builder plusOneAllowed(Boolean plusOneAllowed) {
             this.plusOneAllowed = plusOneAllowed;
+            return this;
+        }
+
+        public Builder isPrimaryContact(Boolean isPrimaryContact) {
+            this.isPrimaryContact = isPrimaryContact;
+            return this;
+        }
+
+        public Builder familyGroup(FamilyGroupEntity familyGroup) {
+            this.familyGroup = familyGroup;
             return this;
         }
 
@@ -161,6 +184,22 @@ public class GuestEntity {
 
     public void setPlusOneAllowed(Boolean plusOneAllowed) {
         this.plusOneAllowed = plusOneAllowed;
+    }
+
+    public Boolean getIsPrimaryContact() {
+        return isPrimaryContact;
+    }
+
+    public void setIsPrimaryContact(Boolean isPrimaryContact) {
+        this.isPrimaryContact = isPrimaryContact;
+    }
+
+    public FamilyGroupEntity getFamilyGroup() {
+        return familyGroup;
+    }
+
+    public void setFamilyGroup(FamilyGroupEntity familyGroup) {
+        this.familyGroup = familyGroup;
     }
 
     public RSVPEntity getRsvp() {
