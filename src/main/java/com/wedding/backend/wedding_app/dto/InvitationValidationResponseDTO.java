@@ -1,137 +1,38 @@
 package com.wedding.backend.wedding_app.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class InvitationValidationResponseDTO {
-    private GuestResponseDTO guest;
-    private RSVPResponseDTO existingRsvp;
-    private boolean hasExistingRsvp;
     
-    // Family-related fields
+    // Primary guest info (the person who got the invitation code)
+    private GuestResponseDTO primaryGuest;
+    
+    // RSVP info
+    private RSVPResponseDTO existingRsvp;
+    private Boolean hasExistingRsvp;
+    
+    // Guest type information
+    private GuestType guestType;
+    
+    // Family-related fields (only populated for family invitations)
     private FamilyGroupResponseDTO familyGroup;
     private List<FamilyMemberResponseDTO> familyMembers;
-    private boolean isFamily;
     
-    // Default constructor
-    public InvitationValidationResponseDTO() {
-    }
+    // Plus-one information (for solo guests)
+    private Boolean canBringPlusOne;
     
-    // Constructor with all fields
-    private InvitationValidationResponseDTO(Builder builder) {
-        this.guest = builder.guest;
-        this.existingRsvp = builder.existingRsvp;
-        this.hasExistingRsvp = builder.hasExistingRsvp;
-        this.familyGroup = builder.familyGroup;
-        this.familyMembers = builder.familyMembers;
-        this.isFamily = builder.isFamily;
-    }
-    
-    // Getters and Setters
-    public GuestResponseDTO getGuest() {
-        return guest;
-    }
-    
-    public void setGuest(GuestResponseDTO guest) {
-        this.guest = guest;
-    }
-    
-    public RSVPResponseDTO getExistingRsvp() {
-        return existingRsvp;
-    }
-    
-    public void setExistingRsvp(RSVPResponseDTO existingRsvp) {
-        this.existingRsvp = existingRsvp;
-    }
-    
-    public boolean isHasExistingRsvp() {
-        return hasExistingRsvp;
-    }
-    
-    public void setHasExistingRsvp(boolean hasExistingRsvp) {
-        this.hasExistingRsvp = hasExistingRsvp;
-    }
-    
-    public FamilyGroupResponseDTO getFamilyGroup() {
-        return familyGroup;
-    }
-    
-    public void setFamilyGroup(FamilyGroupResponseDTO familyGroup) {
-        this.familyGroup = familyGroup;
-    }
-    
-    public List<FamilyMemberResponseDTO> getFamilyMembers() {
-        return familyMembers;
-    }
-    
-    public void setFamilyMembers(List<FamilyMemberResponseDTO> familyMembers) {
-        this.familyMembers = familyMembers;
-    }
-    
-    public boolean isFamily() {
-        return isFamily;
-    }
-    
-    public void setFamily(boolean family) {
-        isFamily = family;
-    }
-    
-    // Builder pattern
-    public static Builder builder() {
-        return new Builder();
-    }
-    
-    public static class Builder {
-        private GuestResponseDTO guest;
-        private RSVPResponseDTO existingRsvp;
-        private boolean hasExistingRsvp;
-        private FamilyGroupResponseDTO familyGroup;
-        private List<FamilyMemberResponseDTO> familyMembers;
-        private boolean isFamily;
-        
-        public Builder guest(GuestResponseDTO guest) {
-            this.guest = guest;
-            return this;
-        }
-        
-        public Builder existingRsvp(RSVPResponseDTO existingRsvp) {
-            this.existingRsvp = existingRsvp;
-            return this;
-        }
-        
-        public Builder hasExistingRsvp(boolean hasExistingRsvp) {
-            this.hasExistingRsvp = hasExistingRsvp;
-            return this;
-        }
-        
-        public Builder familyGroup(FamilyGroupResponseDTO familyGroup) {
-            this.familyGroup = familyGroup;
-            return this;
-        }
-        
-        public Builder familyMembers(List<FamilyMemberResponseDTO> familyMembers) {
-            this.familyMembers = familyMembers;
-            return this;
-        }
-        
-        public Builder isFamily(boolean isFamily) {
-            this.isFamily = isFamily;
-            return this;
-        }
-        
-        public InvitationValidationResponseDTO build() {
-            return new InvitationValidationResponseDTO(this);
-        }
-    }
-    
-    @Override
-    public String toString() {
-        return "InvitationValidationResponseDTO{" +
-                "guest=" + guest +
-                ", existingRsvp=" + existingRsvp +
-                ", hasExistingRsvp=" + hasExistingRsvp +
-                ", familyGroup=" + familyGroup +
-                ", familyMembers=" + familyMembers +
-                ", isFamily=" + isFamily +
-                '}';
+    public enum GuestType {
+        SOLO,              // Single guest, no plus-one
+        SOLO_WITH_PLUS_ONE, // Single guest with plus-one allowed
+        FAMILY_PRIMARY     // Primary contact for a family group
     }
 }

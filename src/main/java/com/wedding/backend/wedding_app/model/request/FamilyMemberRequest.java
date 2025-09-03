@@ -6,13 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class GuestRequest {
+public class FamilyMemberRequest {
     private String firstName;
     private String lastName;
-    private String email;
-    private String phone;
-    private boolean plusOneAllowed;
+    private String ageGroup;
+    private String dietaryRestrictions;
+    private Boolean isAttending;
 }

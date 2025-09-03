@@ -1,13 +1,12 @@
 #!/bin/bash
 
 # Delete all guests script
-# Make sure your backend is running locally before executing
 
-BASE_URL="http://localhost:8080"  # Adjust port if different
-DELETE_ENDPOINT="/v1/api/guests"     # Adjust endpoint path if different
+BASE_URL="http://localhost:8080"
+DELETE_ENDPOINT="/v1/api/guests"
 
-# Guest IDs from your JSON data
-GUEST_IDS=(3 4 6 7 8 9 10 11 12 13 15 16 17 18 19 20 21 22 23 24 25 14 26)
+# Guest IDs
+GUEST_IDS=(30)
 
 echo "Starting guest deletion process..."
 echo "Total guests to delete: ${#GUEST_IDS[@]}"

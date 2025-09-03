@@ -252,6 +252,23 @@ public class FamilyMemberDao {
     }
 
     /**
+     * Find all family members who are attending
+     */
+    @Transactional(readOnly = true)
+    public List<FamilyMemberEntity> findAllAttending() {
+        log.info("Finding all attending family members");
+
+        try {
+            List<FamilyMemberEntity> attendingMembers = familyMemberRepository.findAllAttending();
+            log.info("Found {} attending family members", attendingMembers.size());
+            return attendingMembers;
+        } catch (Exception e) {
+            log.error("Error finding all attending family members", e);
+            throw WeddingAppException.databaseError();
+        }
+    }
+
+    /**
      * Find all family members with dietary restrictions
      */
     @Transactional(readOnly = true)

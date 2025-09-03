@@ -74,8 +74,6 @@ public class DebugController {
             // Create a test RSVP using builder
             RSVPEntity testRsvp = RSVPEntity.builder()
                     .attending(attending)
-                    .bringingPlusOne(attending) // Set to true only if attending
-                    .plusOneName(attending ? "Casey" : null)
                     .dietaryRestrictions(attending ? "No gluten, please" : null)
                     .submittedAt(OffsetDateTime.now())
                     .build();

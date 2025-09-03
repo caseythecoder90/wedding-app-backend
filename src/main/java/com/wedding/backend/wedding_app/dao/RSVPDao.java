@@ -81,14 +81,11 @@ public class RSVPDao {
      * Create or update an RSVP for a guest
      * @param guestId Guest ID
      * @param attending Whether guest is attending
-     * @param bringingPlusOne Whether guest is bringing a plus one
-     * @param plusOneName Name of the plus one
      * @param dietaryRestrictions Dietary restrictions
      * @return Created or updated RSVP entity
      */
     @Transactional
-    public RSVPEntity saveRSVP(Long guestId, Boolean attending, Boolean bringingPlusOne, 
-                             String plusOneName, String dietaryRestrictions) {
+    public RSVPEntity saveRSVP(Long guestId, Boolean attending, String dietaryRestrictions) {
         try {
             GuestEntity guest = guestRepository.findById(guestId)
                     .orElseThrow(() -> WeddingAppException.guestNotFound(guestId));
@@ -105,8 +102,6 @@ public class RSVPDao {
             }
 
             rsvp.setAttending(attending);
-            rsvp.setBringingPlusOne(bringingPlusOne);
-            rsvp.setPlusOneName(plusOneName);
             rsvp.setDietaryRestrictions(dietaryRestrictions);
 
             RSVPEntity savedRSVP = rsvpRepository.save(rsvp);

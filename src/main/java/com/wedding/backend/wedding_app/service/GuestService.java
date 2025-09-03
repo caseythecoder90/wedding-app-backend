@@ -1,26 +1,26 @@
 package com.wedding.backend.wedding_app.service;
 
+import com.wedding.backend.wedding_app.dao.DonationDao;
 import com.wedding.backend.wedding_app.dao.GuestDao;
 import com.wedding.backend.wedding_app.dto.GuestResponseDTO;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.model.request.GuestRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class GuestService {
 
     private final GuestDao guestDao;
-    private final Logger log = LoggerFactory.getLogger(GuestService.class);
-    
-    public GuestService(GuestDao guestDao) {
-        this.guestDao = guestDao;
-    }
+    private final DonationDao donationDao;
 
     /**
      * Add a new guest
@@ -137,9 +137,14 @@ public class GuestService {
      * Remove guest by ID
      * @param id Guest ID to remove
      */
+    @Transactional
     public void removeGuest(Long id) {
         log.info("STARTED - Removing guest with ID: {}", id);
         
+        // First, nullify any donation references to this guest
+        donationDao.nullifyGuestReferences(id);
+        
+        // Then delete the guest
         guestDao.deleteGuest(id);
         
         log.info("COMPLETED - Guest removed successfully");

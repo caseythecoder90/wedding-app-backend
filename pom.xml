@@ -34,6 +34,12 @@
 			<version>3.12.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Apache Commons Collections for CollectionUtils -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>

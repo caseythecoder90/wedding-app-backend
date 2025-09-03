@@ -1,7 +1,9 @@
 package com.wedding.backend.wedding_app.dao;
 
+import com.wedding.backend.wedding_app.entity.FamilyGroupEntity;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
+import com.wedding.backend.wedding_app.repository.FamilyGroupRepository;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +17,12 @@ import java.util.Optional;
 public class GuestDao {
 
     private final GuestRepository guestRepository;
+    private final FamilyGroupRepository familyGroupRepository;
     private final Logger log = LoggerFactory.getLogger(GuestDao.class);
     
-    public GuestDao(GuestRepository guestRepository) {
+    public GuestDao(GuestRepository guestRepository, FamilyGroupRepository familyGroupRepository) {
         this.guestRepository = guestRepository;
+        this.familyGroupRepository = familyGroupRepository;
     }
     
     /**
@@ -188,6 +192,20 @@ public class GuestDao {
             if (!guestRepository.existsById(id)) {
                 log.warn("No guest found with ID: {} to delete", id);
                 throw WeddingAppException.guestNotFound(id);
+            }
+            
+            // Check if this guest is a primary contact for any family group
+            Optional<FamilyGroupEntity> familyGroupOpt = familyGroupRepository.findByPrimaryContactId(id);
+            if (familyGroupOpt.isPresent()) {
+                FamilyGroupEntity familyGroup = familyGroupOpt.get();
+                log.info("Guest ID: {} is primary contact for family group: {}. Clearing primary contact reference.", 
+                        id, familyGroup.getId());
+                
+                // Set primary contact to null to avoid foreign key constraint
+                familyGroup.setPrimaryContact(null);
+                familyGroupRepository.save(familyGroup);
+                
+                log.info("Primary contact cleared for family group: {}", familyGroup.getId());
             }
             
             guestRepository.deleteById(id);

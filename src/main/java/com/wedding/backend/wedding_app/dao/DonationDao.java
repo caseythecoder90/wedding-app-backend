@@ -4,8 +4,8 @@ import com.wedding.backend.wedding_app.entity.DonationEntity;
 import com.wedding.backend.wedding_app.enums.DonationStatus;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.DonationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,14 +14,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Slf4j
+@RequiredArgsConstructor
 public class DonationDao {
 
     private final DonationRepository donationRepository;
-    private final Logger log = LoggerFactory.getLogger(DonationDao.class);
-
-    public DonationDao(DonationRepository donationRepository) {
-        this.donationRepository = donationRepository;
-    }
 
     /**
      * Save a new donation
@@ -219,6 +216,30 @@ public class DonationDao {
             return average;
         } catch (Exception e) {
             log.error("Error fetching average donation amount", e);
+            throw WeddingAppException.databaseError();
+        }
+    }
+
+    /**
+     * Nullify guest references for donations associated with a specific guest
+     * @param guestId The guest ID to nullify references for
+     */
+    @Transactional
+    public void nullifyGuestReferences(Long guestId) {
+        log.info("Nullifying guest references for guest ID: {}", guestId);
+
+        try {
+            List<DonationEntity> donations = donationRepository.findByGuest_IdOrderByDonationDateDesc(guestId);
+            log.info("Found {} donations referencing guest ID: {}", donations.size(), guestId);
+            
+            for (DonationEntity donation : donations) {
+                donation.setGuest(null);
+                donationRepository.save(donation);
+            }
+            
+            log.info("Successfully nullified guest references for guest ID: {}", guestId);
+        } catch (Exception e) {
+            log.error("Error nullifying guest references for guest ID: {}", guestId, e);
             throw WeddingAppException.databaseError();
         }
     }

@@ -1,23 +1,33 @@
 package com.wedding.backend.wedding_app.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "guests")
+@Data
+@ToString(exclude = {"familyGroup"})
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class GuestEntity {
 
     @Id
@@ -29,6 +39,7 @@ public class GuestEntity {
     private String email;
     private String phone;
     private Boolean plusOneAllowed;
+    @Builder.Default
     private Boolean isPrimaryContact = false;
 
     @ManyToOne
@@ -42,195 +53,6 @@ public class GuestEntity {
     
     @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL)
     @JsonManagedReference
+    @Builder.Default
     private List<InvitationCodeEntity> invitationCodes = new ArrayList<>();
-
-    public GuestEntity() {
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    // Private constructor used by Builder
-    private GuestEntity(Builder builder) {
-        this.firstName = builder.firstName;
-        this.lastName = builder.lastName;
-        this.email = builder.email;
-        this.phone = builder.phone;
-        this.plusOneAllowed = builder.plusOneAllowed;
-        this.isPrimaryContact = builder.isPrimaryContact;
-        this.familyGroup = builder.familyGroup;
-        this.rsvp = builder.rsvp;
-        this.invitationCodes = builder.invitationCodes;
-    }
-
-    // Builder class
-    public static class Builder {
-        private String firstName;
-        private String lastName;
-        private String email;
-        private String phone;
-        private Boolean plusOneAllowed;
-        private Boolean isPrimaryContact;
-        private FamilyGroupEntity familyGroup;
-        private RSVPEntity rsvp;
-        private List<InvitationCodeEntity> invitationCodes = new ArrayList<>();
-
-        public Builder firstName(String firstName) {
-            this.firstName = firstName;
-            return this;
-        }
-
-        public Builder lastName(String lastName) {
-            this.lastName = lastName;
-            return this;
-        }
-
-        public Builder email(String email) {
-            this.email = email;
-            return this;
-        }
-
-        public Builder phone(String phone) {
-            this.phone = phone;
-            return this;
-        }
-
-        public Builder plusOneAllowed(Boolean plusOneAllowed) {
-            this.plusOneAllowed = plusOneAllowed;
-            return this;
-        }
-
-        public Builder isPrimaryContact(Boolean isPrimaryContact) {
-            this.isPrimaryContact = isPrimaryContact;
-            return this;
-        }
-
-        public Builder familyGroup(FamilyGroupEntity familyGroup) {
-            this.familyGroup = familyGroup;
-            return this;
-        }
-
-        public Builder rsvp(RSVPEntity rsvp) {
-            this.rsvp = rsvp;
-            return this;
-        }
-        
-        public Builder invitationCodes(List<InvitationCodeEntity> invitationCodes) {
-            this.invitationCodes = invitationCodes;
-            return this;
-        }
-
-        public GuestEntity build() {
-            return new GuestEntity(this);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return """
-                Guest:
-                    firstName: %s
-                    lastName: %s
-                    email: %s
-                    phone: %s
-                """.formatted(firstName, lastName, email, phone);
-    }
-    
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public Boolean getPlusOneAllowed() {
-        return plusOneAllowed;
-    }
-
-    public void setPlusOneAllowed(Boolean plusOneAllowed) {
-        this.plusOneAllowed = plusOneAllowed;
-    }
-
-    public Boolean getIsPrimaryContact() {
-        return isPrimaryContact;
-    }
-
-    public void setIsPrimaryContact(Boolean isPrimaryContact) {
-        this.isPrimaryContact = isPrimaryContact;
-    }
-
-    public FamilyGroupEntity getFamilyGroup() {
-        return familyGroup;
-    }
-
-    public void setFamilyGroup(FamilyGroupEntity familyGroup) {
-        this.familyGroup = familyGroup;
-    }
-
-    public RSVPEntity getRsvp() {
-        return rsvp;
-    }
-
-    public void setRsvp(RSVPEntity rsvp) {
-        this.rsvp = rsvp;
-    }
-    
-    public List<InvitationCodeEntity> getInvitationCodes() {
-        return invitationCodes;
-    }
-    
-    public void setInvitationCodes(List<InvitationCodeEntity> invitationCodes) {
-        this.invitationCodes = invitationCodes;
-    }
-    
-    // Equals and HashCode
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        
-        GuestEntity that = (GuestEntity) o;
-        
-        return id != null ? id.equals(that.id) : that.id == null;
-    }
-    
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
-    }
 }

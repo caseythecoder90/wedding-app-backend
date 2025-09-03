@@ -1,20 +1,15 @@
 package com.wedding.backend.wedding_app.controller;
 
 import com.wedding.backend.wedding_app.annotations.InvitationApiDocs;
-import com.wedding.backend.wedding_app.dto.GuestResponseDTO;
 import com.wedding.backend.wedding_app.dto.InvitationCodeResponseDTO;
 import com.wedding.backend.wedding_app.dto.InvitationValidationResponseDTO;
-import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.InvitationCodeEntity;
 import com.wedding.backend.wedding_app.service.InvitationCodeService;
 import com.wedding.backend.wedding_app.service.QRCodeService;
-
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,25 +18,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.SPACE;
 
 @RestController
 @RequestMapping("/v1/api/invitation")
 @Tag(name = "Invitation Management", description = "Endpoints for managing invitation codes and QR codes")
+@Slf4j
+@RequiredArgsConstructor
 public class InvitationController {
 
-    private static final Logger log = LoggerFactory.getLogger(InvitationController.class);
-    
     private final InvitationCodeService invitationCodeService;
     private final QRCodeService qrCodeService;
-    
-    @Autowired
-    public InvitationController(InvitationCodeService invitationCodeService, QRCodeService qrCodeService) {
-        this.invitationCodeService = invitationCodeService;
-        this.qrCodeService = qrCodeService;
-    }
     
     @InvitationApiDocs.GenerateCode
     @PostMapping("/code/generate/{guestId}")
@@ -105,7 +93,7 @@ public class InvitationController {
 
         InvitationValidationResponseDTO response = invitationCodeService.validateInvitationAndRetrieveRSVP(code);
 
-        log.info("END - Validated invitation code for guest: {}", response.getGuest().getId());
+        log.info("END - Validated invitation code for guest: {}", response.getPrimaryGuest().getId());
         return ResponseEntity.ok(response);
     }
     

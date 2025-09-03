@@ -59,4 +59,10 @@ public interface FamilyMemberRepository extends JpaRepository<FamilyMemberEntity
      */
     @Query("SELECT fm FROM FamilyMemberEntity fm WHERE fm.ageGroup = :ageGroup AND fm.isAttending = :isAttending")
     List<FamilyMemberEntity> findByAgeGroupAndAttendanceStatus(@Param("ageGroup") String ageGroup, @Param("isAttending") Boolean isAttending);
+
+    /**
+     * Find all family members who are attending
+     */
+    @Query("SELECT fm FROM FamilyMemberEntity fm WHERE fm.isAttending = true ORDER BY fm.familyGroup.groupName, fm.firstName, fm.lastName")
+    List<FamilyMemberEntity> findAllAttending();
 }

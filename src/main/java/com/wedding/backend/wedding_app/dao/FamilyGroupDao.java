@@ -93,6 +93,23 @@ public class FamilyGroupDao {
     }
 
     /**
+     * Save a family group entity
+     */
+    @Transactional
+    public FamilyGroupEntity save(FamilyGroupEntity familyGroup) {
+        log.info("Saving family group: {}", familyGroup.getGroupName());
+        
+        try {
+            FamilyGroupEntity savedFamilyGroup = familyGroupRepository.save(familyGroup);
+            log.info("Family group saved with ID: {}", savedFamilyGroup.getId());
+            return savedFamilyGroup;
+        } catch (Exception e) {
+            log.error("Error saving family group", e);
+            throw WeddingAppException.databaseError();
+        }
+    }
+
+    /**
      * Create a new family group
      */
     @Transactional

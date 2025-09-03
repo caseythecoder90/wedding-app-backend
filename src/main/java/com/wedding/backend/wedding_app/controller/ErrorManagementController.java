@@ -2,7 +2,7 @@ package com.wedding.backend.wedding_app.controller;
 
 
 import com.wedding.backend.wedding_app.annotations.OperationsApiDocs;
-import com.wedding.backend.wedding_app.entity.ErrorDefinition;
+import com.wedding.backend.wedding_app.entity.ErrorDefinitionEntity;
 import com.wedding.backend.wedding_app.model.request.ErrorDefinitionRequest;
 import com.wedding.backend.wedding_app.service.ErrorManagementService;
 import jakarta.validation.Valid;
@@ -35,22 +35,22 @@ public class ErrorManagementController {
 
     @PostMapping("/errors")
     @OperationsApiDocs.AddErrorDefinition
-    public ResponseEntity<ErrorDefinition> addErrorDefinition(
+    public ResponseEntity<ErrorDefinitionEntity> addErrorDefinition(
             @Valid @RequestBody ErrorDefinitionRequest request) {
 
         log.info("Adding new error definition: {}", request.getErrorKey());
-        ErrorDefinition errorDefinition = errorService.addErrorDefinition(request);
+        ErrorDefinitionEntity errorDefinition = errorService.addErrorDefinition(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(errorDefinition);
     }
 
     @PutMapping("/errors/{errorKey}")
     @OperationsApiDocs.UpdateErrorDefinition
-    public ResponseEntity<ErrorDefinition> updateErrorDefinition(
+    public ResponseEntity<ErrorDefinitionEntity> updateErrorDefinition(
             @PathVariable String errorKey,
             @Valid @RequestBody ErrorDefinitionRequest request) {
 
         log.info("Updating error definition: {}", errorKey);
-        ErrorDefinition errorDefinition = errorService.updateErrorDefinition(errorKey, request);
+        ErrorDefinitionEntity errorDefinition = errorService.updateErrorDefinition(errorKey, request);
         return ResponseEntity.ok(errorDefinition);
     }
 
@@ -64,7 +64,7 @@ public class ErrorManagementController {
 
     @GetMapping("/errors")
     @OperationsApiDocs.GetAllErrorDefinitions
-    public ResponseEntity<Map<String, ErrorDefinition>> getAllErrorDefinitions() {
+    public ResponseEntity<Map<String, ErrorDefinitionEntity>> getAllErrorDefinitions() {
         log.info("Fetching all error definitions");
         return ResponseEntity.ok(errorService.getAllErrorDefinitions());
     }

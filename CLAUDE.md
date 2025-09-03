@@ -19,3 +19,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Logging: Use SLF4J (log.info) with BEGIN/END markers
 - Naming: CamelCase for variables, PascalCase for classes
 - Document APIs with Swagger annotations (@Tag, custom api doc annotations)
+
+## System Architecture Summary
+
+### Core Entities
+- **GuestEntity**: Primary invitees with contact info, can be part of family groups, has invitation codes
+- **FamilyGroupEntity**: Groups of guests with a primary contact, max attendee limits
+- **FamilyMemberEntity**: Additional family members within a group (separate from guests)
+- **RSVPEntity**: One-to-one with guests, tracks attendance and plus-ones
+- **InvitationCodeEntity**: Unique codes for guest authentication
+
+### RSVP Flow
+1. Guest enters invitation code in UI
+2. Backend validates code and returns invitation data (single guest, guest+plus-one, or family group)
+3. Guest submits RSVP with attendance info
+4. System processes and stores RSVP data
+
+### Known Issues/Inconsistencies
+- Plus-ones stored as strings in RSVP rather than entities
+- Dual person representation (GuestEntity vs FamilyMemberEntity)
+- API responses have both familyMembers and additionalGuests fields
+- RSVP request handling differs for plus-ones vs family members
+
+### Guest Types Supported
+- SOLO: Single guest, no plus-one
+- SOLO_WITH_PLUS_ONE: Single guest with plus-one allowed  
+- FAMILY_PRIMARY: Primary contact for family group with multiple members

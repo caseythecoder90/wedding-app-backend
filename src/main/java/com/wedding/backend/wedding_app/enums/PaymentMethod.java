@@ -1,5 +1,8 @@
 package com.wedding.backend.wedding_app.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum PaymentMethod {
 
     VENMO("Venmo"),
@@ -12,7 +15,4 @@ public enum PaymentMethod {
         this.displayName = displayName;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
 }

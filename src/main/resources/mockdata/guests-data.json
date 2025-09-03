@@ -2,34 +2,34 @@
   {
     "firstName": "Connor",
     "lastName": "Quinn",
-    "email": "businessyas23@gmail.com",
-    "phone": "555-123-4567",
+    "email": "connorq0927@gmail.com",
+    "phone": "512-484-6356",
     "plusOneAllowed": true
   },
   {
-    "firstName": "Casey",
-    "lastName": "Swedish",
-    "email": "caseytheswe@gmail.com",
-    "phone": "555-234-5678",
+    "firstName": "Peter",
+    "lastName": "Zekany",
+    "email": "peterzekany.1@gmail.com",
+    "phone": "404-217-9786",
     "plusOneAllowed": true
   },
   {
-    "firstName": "Casey",
-    "lastName": "Davidson",
-    "email": "caseythecoder90@gmail.com",
-    "phone": "555-345-6789",
-    "plusOneAllowed": false
+    "firstName": "Steve",
+    "lastName": "Burnett",
+    "email": "",
+    "phone": "248-425-0202",
+    "plusOneAllowed": true
+  },
+  {
+    "firstName": "Jose",
+    "lastName": "Cabral",
+    "email": "",
+    "phone": "678-995-9821",
+    "plusOneAllowed": true
   },
   {
     "firstName": "Tim",
-    "lastName": "Quinn",
-    "email": "casey.quinn@tamu.edu",
-    "phone": "555-456-7890",
-    "plusOneAllowed": true
-  },
-  {
-    "firstName": "Alex",
-    "lastName": "Johnson",
+    "lastName": "Freer",
     "email": "alex.johnson@example.com",
     "phone": "555-567-8901",
     "plusOneAllowed": true

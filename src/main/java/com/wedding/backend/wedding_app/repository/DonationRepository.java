@@ -50,6 +50,11 @@ public interface DonationRepository extends JpaRepository<DonationEntity, Long> 
     List<DonationEntity> findByGuestIdOrderByDonationDateDesc(Long guestId);
 
     /**
+     * Find donations by guest entity ID ordered by donation date (newest first)
+     */
+    List<DonationEntity> findByGuest_IdOrderByDonationDateDesc(Long guestId);
+
+    /**
      * Find confirmed donations that haven't had 'thank you' emails sent
      */
     @Query("SELECT d FROM DonationEntity d WHERE d.status = 'CONFIRMED' AND d.thankYouSentDate IS NULL")

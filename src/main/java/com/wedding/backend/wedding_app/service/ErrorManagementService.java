@@ -1,6 +1,6 @@
 package com.wedding.backend.wedding_app.service;
 
-import com.wedding.backend.wedding_app.entity.ErrorDefinition;
+import com.wedding.backend.wedding_app.entity.ErrorDefinitionEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.model.exception.Detail;
 import com.wedding.backend.wedding_app.model.exception.ErrorResponse;
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ErrorManagementService {
 
     private final ErrorRepository errorRepository;
-    private final Map<String, ErrorDefinition> errorDefinitions = new ConcurrentHashMap<>();
+    private final Map<String, ErrorDefinitionEntity> errorDefinitions = new ConcurrentHashMap<>();
     private final Logger log = LoggerFactory.getLogger(ErrorManagementService.class);
     
     public ErrorManagementService(ErrorRepository errorRepository) {
@@ -43,13 +43,13 @@ public class ErrorManagementService {
     /**
      * Adds a new error definition
      */
-    public ErrorDefinition addErrorDefinition(ErrorDefinitionRequest request) {
+    public ErrorDefinitionEntity addErrorDefinition(ErrorDefinitionRequest request) {
 
         if (errorDefinitions.containsKey(request.getErrorKey())) {
             throw new WeddingAppException("ERROR_KEY_ALREADY_EXISTS", request.getErrorKey());
         }
 
-        ErrorDefinition errorDefinition = ErrorDefinition.builder()
+        ErrorDefinitionEntity errorDefinition = ErrorDefinitionEntity.builder()
                 .errorKey(request.getErrorKey())
                 .errorCode(request.getErrorCode())
                 .errorReason(request.getErrorReason())
@@ -57,7 +57,7 @@ public class ErrorManagementService {
                 .retryable(request.isRetryable())
                 .build();
 
-        ErrorDefinition savedError = errorRepository.save(errorDefinition);
+        ErrorDefinitionEntity savedError = errorRepository.save(errorDefinition);
 
         errorDefinitions.put(savedError.getErrorKey(), savedError);
 
@@ -68,13 +68,13 @@ public class ErrorManagementService {
     /**
      * Updates an existing error definition
      */
-    public ErrorDefinition updateErrorDefinition(String errorKey, ErrorDefinitionRequest request) {
+    public ErrorDefinitionEntity updateErrorDefinition(String errorKey, ErrorDefinitionRequest request) {
 
         if (!errorDefinitions.containsKey(errorKey)) {
             throw new WeddingAppException("ERROR_KEY_NOT_FOUND", errorKey);
         }
 
-        ErrorDefinition errorDefinition = ErrorDefinition.builder()
+        ErrorDefinitionEntity errorDefinition = ErrorDefinitionEntity.builder()
                 .errorKey(errorKey)
                 .errorCode(request.getErrorCode())
                 .errorReason(request.getErrorReason())
@@ -82,7 +82,7 @@ public class ErrorManagementService {
                 .retryable(request.isRetryable())
                 .build();
 
-        ErrorDefinition updatedError = errorRepository.save(errorDefinition);
+        ErrorDefinitionEntity updatedError = errorRepository.save(errorDefinition);
 
         errorDefinitions.put(updatedError.getErrorKey(), updatedError);
 
@@ -109,7 +109,7 @@ public class ErrorManagementService {
     /**
      * Gets all error definitions currently loaded in memory
      */
-    public Map<String, ErrorDefinition> getAllErrorDefinitions() {
+    public Map<String, ErrorDefinitionEntity> getAllErrorDefinitions() {
         // Return an unmodifiable map to prevent external modifications
         return Collections.unmodifiableMap(errorDefinitions);
     }
@@ -138,7 +138,7 @@ public class ErrorManagementService {
      * Creates an error response with additional details
      */
     public ErrorResponse createErrorResponse(String errorKey, String path, List<Detail> details, HttpStatus status) {
-        ErrorDefinition errorDef = errorDefinitions.getOrDefault(errorKey,
+        ErrorDefinitionEntity errorDef = errorDefinitions.getOrDefault(errorKey,
                 createDefaultError(errorKey));
 
         return ErrorResponse.builder()
@@ -157,8 +157,8 @@ public class ErrorManagementService {
     /**
      * Creates a default error when the error key is not found
      */
-    private ErrorDefinition createDefaultError(String errorKey) {
-        return ErrorDefinition.builder()
+    private ErrorDefinitionEntity createDefaultError(String errorKey) {
+        return ErrorDefinitionEntity.builder()
                 .errorKey(errorKey)
                 .errorCode("500.999")
                 .errorReason("Unknown error occurred")

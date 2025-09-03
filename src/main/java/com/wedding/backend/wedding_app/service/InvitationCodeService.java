@@ -3,22 +3,27 @@ package com.wedding.backend.wedding_app.service;
 import com.wedding.backend.wedding_app.dao.GuestDao;
 import com.wedding.backend.wedding_app.dao.InvitationDao;
 import com.wedding.backend.wedding_app.dao.RSVPDao;
+import com.wedding.backend.wedding_app.dto.FamilyGroupResponseDTO;
+import com.wedding.backend.wedding_app.dto.FamilyMemberResponseDTO;
 import com.wedding.backend.wedding_app.dto.GuestResponseDTO;
 import com.wedding.backend.wedding_app.dto.InvitationValidationResponseDTO;
 import com.wedding.backend.wedding_app.dto.RSVPResponseDTO;
+import com.wedding.backend.wedding_app.entity.FamilyGroupEntity;
+import com.wedding.backend.wedding_app.entity.FamilyMemberEntity;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.InvitationCodeEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CHARSET;
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CODE_LENGTH;
@@ -26,20 +31,13 @@ import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.CODE_
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.SPACE;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class InvitationCodeService {
-
-    private static final Logger log = LoggerFactory.getLogger(InvitationCodeService.class);
 
     private final InvitationDao invitationDao;
     private final GuestDao guestDao;
     private final RSVPDao rsvpDao;
-
-    @Autowired
-    public InvitationCodeService(InvitationDao invitationDao, GuestDao guestDao, RSVPDao rsvpDao) {
-        this.invitationDao = invitationDao;
-        this.guestDao = guestDao;
-        this.rsvpDao = rsvpDao;
-    }
 
     /**
      * Generates a unique random alphanumeric code
@@ -143,11 +141,74 @@ public class InvitationCodeService {
     public InvitationValidationResponseDTO validateInvitationAndRetrieveRSVP(String code) {
         log.info("BEGIN - Validating invitation code and retrieving RSVP data: {}", code);
 
-        // Validate the code and get the guest
-        GuestEntity guest = validateCode(code);
+        // Validate the code and get the primary guest
+        GuestEntity primaryGuest = validateCode(code);
 
-        // Map guest to DTO
-        GuestResponseDTO guestResponseDTO = GuestResponseDTO.builder()
+        // Build primary guest DTO
+        GuestResponseDTO primaryGuestDTO = buildGuestResponseDTO(primaryGuest);
+
+        // Check for existing RSVP
+        RSVPResponseDTO existingRsvpDTO = null;
+        boolean hasExistingRsvp = primaryGuest.getRsvp() != null;
+        
+        if (hasExistingRsvp) {
+            log.info("Guest has an existing RSVP, retrieving RSVP data");
+            existingRsvpDTO = buildRSVPResponseDTO(primaryGuest.getRsvp(), primaryGuest);
+        }
+
+        // Determine guest type and gather family information
+        InvitationValidationResponseDTO.GuestType guestType;
+        FamilyGroupResponseDTO familyGroupDTO = null;
+        List<FamilyMemberResponseDTO> familyMembersDTO = new ArrayList<>();
+        FamilyGroupEntity familyGroup = primaryGuest.getFamilyGroup();
+        
+        if (familyGroup != null && primaryGuest.getIsPrimaryContact()) {
+            // This is a family primary contact
+            guestType = InvitationValidationResponseDTO.GuestType.FAMILY_PRIMARY;
+            
+            log.info("Guest is primary contact for family group: {}", familyGroup.getGroupName());
+            
+            // Build family group DTO
+            familyGroupDTO = FamilyGroupResponseDTO.builder()
+                    .id(familyGroup.getId())
+                    .groupName(familyGroup.getGroupName())
+                    .maxAttendees(familyGroup.getMaxAttendees())
+                    .primaryContactGuestId(primaryGuest.getId())
+                    .createdAt(familyGroup.getCreatedAt())
+                    .build();
+
+            // Get family members
+            if (familyGroup.getFamilyMembers() != null) {
+                familyMembersDTO = familyGroup.getFamilyMembers().stream()
+                        .map(this::buildFamilyMemberResponseDTO)
+                        .collect(Collectors.toList());
+            }
+            
+        } else if (primaryGuest.getPlusOneAllowed() != null && primaryGuest.getPlusOneAllowed()) {
+            // Solo guest with plus-one allowed
+            guestType = InvitationValidationResponseDTO.GuestType.SOLO_WITH_PLUS_ONE;
+        } else {
+            // Solo guest without plus-one
+            guestType = InvitationValidationResponseDTO.GuestType.SOLO;
+        }
+
+        // Build the complete response
+        InvitationValidationResponseDTO response = InvitationValidationResponseDTO.builder()
+                .primaryGuest(primaryGuestDTO)
+                .existingRsvp(existingRsvpDTO)
+                .hasExistingRsvp(hasExistingRsvp)
+                .guestType(guestType)
+                .familyGroup(familyGroupDTO)
+                .familyMembers(familyMembersDTO)
+                .canBringPlusOne(primaryGuest.getPlusOneAllowed())
+                .build();
+
+        log.info("END - Validated invitation code for {} guest: {}", guestType, primaryGuest.getId());
+        return response;
+    }
+
+    private GuestResponseDTO buildGuestResponseDTO(GuestEntity guest) {
+        return GuestResponseDTO.builder()
                 .id(guest.getId())
                 .firstName(guest.getFirstName())
                 .lastName(guest.getLastName())
@@ -156,42 +217,30 @@ public class InvitationCodeService {
                 .hasRsvp(guest.getRsvp() != null)
                 .rsvpId(guest.getRsvp() != null ? guest.getRsvp().getId() : null)
                 .build();
+    }
 
-        // Check if guest has an RSVP
-        RSVPResponseDTO rsvpResponseDTO = null;
-        boolean hasExistingRsvp = false;
-
-        if (guest.getRsvp() != null) {
-            log.info("Guest has an existing RSVP, retrieving RSVP data");
-            Optional<RSVPEntity> rsvpOpt = rsvpDao.findRSVPById(guest.getRsvp().getId());
-
-            if (rsvpOpt.isPresent()) {
-                RSVPEntity rsvp = rsvpOpt.get();
-                hasExistingRsvp = true;
-
-                // Map to DTO
-                rsvpResponseDTO = RSVPResponseDTO.builder()
-                        .id(rsvp.getId())
-                        .guestId(guest.getId())
-                        .guestName(guest.getFirstName() + SPACE + guest.getLastName())
-                        .attending(rsvp.getAttending())
-                        .bringingPlusOne(rsvp.getBringingPlusOne())
-                        .plusOneName(rsvp.getPlusOneName())
-                        .dietaryRestrictions(rsvp.getDietaryRestrictions())
-                        .submittedAt(rsvp.getSubmittedAt())
-                        .build();
-            }
-        }
-
-        // Build the response
-        InvitationValidationResponseDTO responseDTO = InvitationValidationResponseDTO.builder()
-                .guest(guestResponseDTO)
-                .existingRsvp(rsvpResponseDTO)
-                .hasExistingRsvp(hasExistingRsvp)
+    private RSVPResponseDTO buildRSVPResponseDTO(RSVPEntity rsvp, GuestEntity guest) {
+        return RSVPResponseDTO.builder()
+                .id(rsvp.getId())
+                .guestId(guest.getId())
+                .guestName(guest.getFirstName() + SPACE + guest.getLastName())
+                .guestEmail(guest.getEmail())
+                .attending(rsvp.getAttending())
+                .dietaryRestrictions(rsvp.getDietaryRestrictions())
+                .submittedAt(rsvp.getSubmittedAt())
                 .build();
+    }
 
-        log.info("END - Validated invitation code and retrieved RSVP data for guest ID: {}", guest.getId());
-        return responseDTO;
+    private FamilyMemberResponseDTO buildFamilyMemberResponseDTO(FamilyMemberEntity familyMember) {
+        return FamilyMemberResponseDTO.builder()
+                .id(familyMember.getId())
+                .firstName(familyMember.getFirstName())
+                .lastName(familyMember.getLastName())
+                .ageGroup(familyMember.getAgeGroup())
+                .dietaryRestrictions(familyMember.getDietaryRestrictions())
+                .isAttending(familyMember.getIsAttending())
+                .familyGroupId(familyMember.getFamilyGroup().getId())
+                .build();
     }
 
     /**

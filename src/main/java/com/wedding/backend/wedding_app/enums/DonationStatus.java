@@ -1,8 +1,12 @@
 package com.wedding.backend.wedding_app.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum DonationStatus {
     PENDING("Pending Confirmation"),
-    CONFIRMED("Confirmed");
+    CONFIRMED("Confirmed"),
+    THANKED("Thank You Sent");
 
     private final String displayName;
 
@@ -10,7 +14,4 @@ public enum DonationStatus {
         this.displayName = displayName;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
 }

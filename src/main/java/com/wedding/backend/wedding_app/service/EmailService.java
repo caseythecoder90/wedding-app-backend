@@ -3,6 +3,8 @@ package com.wedding.backend.wedding_app.service;
 import com.wedding.backend.wedding_app.config.EmailConfig;
 import com.wedding.backend.wedding_app.dto.RSVPSummaryDTO;
 import com.wedding.backend.wedding_app.entity.DonationEntity;
+import com.wedding.backend.wedding_app.entity.FamilyGroupEntity;
+import com.wedding.backend.wedding_app.entity.FamilyMemberEntity;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.enums.DonationStatus;
@@ -12,9 +14,9 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -23,30 +25,27 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.*;
 
 /**
  * Service for handling all email functionality in the application
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
     private final Configuration freemarkerConfig;
     private final EmailConfig emailConfig;
-    private final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a");
 
-    public EmailService(JavaMailSender mailSender, Configuration freemarkerConfig,
-                        EmailConfig emailConfig) {
-        this.mailSender = mailSender;
-        this.freemarkerConfig = freemarkerConfig;
-        this.emailConfig = emailConfig;
-    }
 
     /**
      * Sends an RSVP confirmation email based on the RSVP status (attending or not attending)
@@ -56,7 +55,6 @@ public class EmailService {
     public void sendRSVPConfirmationEmail(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
         log.info("STARTED - Sending RSVP confirmation email to: {}", guestEntity.getEmail());
 
-        // Validate email
         if (StringUtils.isBlank(guestEntity.getEmail())) {
             log.warn("Cannot send email - guest email is invalid");
             return;
@@ -150,6 +148,12 @@ public class EmailService {
             model.put(ADMIN_FIELD_ATTENDING_RSVPS, rsvpSummary.getAttendingRsvps());
             model.put(ADMIN_FIELD_NOT_ATTENDING_RSVPS, rsvpSummary.getNotAttendingRsvps());
             model.put(ADMIN_FIELD_LAST_UPDATED, rsvpSummary.getLastUpdated());
+            
+            // Add attending family members data from the summary
+            model.put(ADMIN_FIELD_ATTENDING_FAMILY_MEMBERS, rsvpSummary.getAttendingFamilyMembers());
+            log.info("Added {} attending family members to admin notification model", 
+                    rsvpSummary.getAttendingFamilyMembers() != null ? rsvpSummary.getAttendingFamilyMembers().size() : 0);
+            
         } catch (Exception e) {
             log.error("Error building RSVP summary for admin notification", e);
             // Add error flag to model
@@ -161,7 +165,7 @@ public class EmailService {
     }
 
     /**
-     * Build a model map for RSVP-related emails
+     * Build a model map for RSVP-related emails including family member information
      * @param rsvpEntity The RSVP entity
      * @param guestEntity The guest entity
      * @return Map containing all template variables
@@ -176,8 +180,6 @@ public class EmailService {
 
         // RSVP information
         model.put(EMAIL_FIELD_ATTENDING, rsvpEntity.getAttending());
-        model.put(EMAIL_FIELD_BRINGING_PLUS_ONE, rsvpEntity.getBringingPlusOne());
-        model.put(EMAIL_FIELD_PLUS_ONE_NAME, rsvpEntity.getPlusOneName());
         model.put(EMAIL_FIELD_DIETARY_RESTRICTIONS, rsvpEntity.getDietaryRestrictions());
         model.put(EMAIL_FIELD_RSVP_ID, rsvpEntity.getId());
 
@@ -185,6 +187,47 @@ public class EmailService {
         if (rsvpEntity.getSubmittedAt() != null) {
             model.put(EMAIL_FIELD_SUBMISSION_DATE,
                   rsvpEntity.getSubmittedAt().format(DATE_FORMATTER));
+        }
+
+        // Add family information if this is a family primary contact
+        FamilyGroupEntity familyGroup = guestEntity.getFamilyGroup();
+        boolean isFamilyRsvp = familyGroup != null && guestEntity.getIsPrimaryContact();
+        model.put(EMAIL_FIELD_IS_FAMILY_RSVP, isFamilyRsvp);
+        
+        if (isFamilyRsvp) {
+            log.info("Adding family information to email model for group: {}", familyGroup.getGroupName());
+            
+            model.put(EMAIL_FIELD_FAMILY_GROUP_NAME, familyGroup.getGroupName());
+            
+            // Get family members and their RSVP status
+            List<FamilyMemberEntity> familyMembers = familyGroup.getFamilyMembers();
+            if (familyMembers != null && !familyMembers.isEmpty()) {
+                List<Map<String, Object>> familyMemberData = familyMembers.stream()
+                    .map(member -> {
+                        Map<String, Object> memberData = new HashMap<>();
+                        memberData.put("firstName", member.getFirstName());
+                        memberData.put("lastName", member.getLastName());
+                        memberData.put("ageGroup", member.getAgeGroup());
+                        memberData.put("isAttending", member.getIsAttending());
+                        memberData.put("dietaryRestrictions", member.getDietaryRestrictions());
+                        return memberData;
+                    })
+                    .collect(Collectors.toList());
+                
+                model.put(EMAIL_FIELD_FAMILY_MEMBERS, familyMemberData);
+                
+                // Calculate family attendance counts
+                long attendingCount = familyMembers.stream()
+                    .filter(member -> Boolean.TRUE.equals(member.getIsAttending()))
+                    .count();
+                
+                model.put(EMAIL_FIELD_FAMILY_ATTENDING_COUNT, attendingCount);
+                model.put(EMAIL_FIELD_FAMILY_TOTAL_COUNT, familyMembers.size());
+            } else {
+                model.put(EMAIL_FIELD_FAMILY_MEMBERS, List.of());
+                model.put(EMAIL_FIELD_FAMILY_ATTENDING_COUNT, 0);
+                model.put(EMAIL_FIELD_FAMILY_TOTAL_COUNT, 0);
+            }
         }
 
         return model;

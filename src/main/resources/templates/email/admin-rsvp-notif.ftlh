@@ -116,23 +116,11 @@
                         <th>Attending:</th>
                         <td><strong>${attending?string('Yes', 'No')}</strong></td>
                     </tr>
-                    <#if attending>
-                    <tr>
-                        <th>Bringing Plus One:</th>
-                        <td>${bringingPlusOne?string('Yes', 'No')}</td>
-                    </tr>
-                    <#if bringingPlusOne && plusOneName?has_content>
-                    <tr>
-                        <th>Plus One Name:</th>
-                        <td>${plusOneName}</td>
-                    </tr>
-                    </#if>
-                    <#if dietaryRestrictions?has_content>
+                    <#if attending && dietaryRestrictions?has_content>
                     <tr>
                         <th>Dietary Restrictions:</th>
                         <td>${dietaryRestrictions}</td>
                     </tr>
-                    </#if>
                     </#if>
                     <tr>
                         <th>RSVP ID:</th>
@@ -146,6 +134,37 @@
                     </#if>
                 </table>
             </div>
+            
+            <#if isFamilyRsvp>
+            <div class="rsvp-details">
+                <h3>Group Details: ${familyGroupName}</h3>
+                <#if familyMembers?? && familyMembers?size gt 0>
+                    <p><strong>Additional Guests (${familyAttendingCount} of ${familyTotalCount} attending):</strong></p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Age Group</th>
+                                <th>Attending</th>
+                                <th>Dietary Restrictions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <#list familyMembers as member>
+                                <tr class="${member.isAttending?string('attending', 'not-attending')}">
+                                    <td>${member.firstName} ${member.lastName}</td>
+                                    <td>${member.ageGroup!""}</td>
+                                    <td><strong>${member.isAttending?string('Yes', 'No')}</strong></td>
+                                    <td>${member.dietaryRestrictions!""}</td>
+                                </tr>
+                            </#list>
+                        </tbody>
+                    </table>
+                <#else>
+                    <p><em>No additional guests in this group.</em></p>
+                </#if>
+            </div>
+            </#if>
         </div>
 
         <!-- RSVP Summary Section -->
@@ -185,8 +204,6 @@
                         <thead>
                             <tr>
                                 <th>Guest Name</th>
-                                <th>Plus One</th>
-                                <th>Plus One Name</th>
                                 <th>Dietary Restrictions</th>
                                 <th>Email</th>
                             </tr>
@@ -195,8 +212,6 @@
                             <#list attendingRsvps as rsvp>
                                 <tr class="attending">
                                     <td>${rsvp.guestName}</td>
-                                    <td>${rsvp.bringingPlusOne?string('Yes', 'No')}</td>
-                                    <td>${rsvp.plusOneName!""}</td>
                                     <td>${rsvp.dietaryRestrictions!""}</td>
                                     <td>${(rsvp.guestEmail?? && rsvp.guestEmail != "")?then(rsvp.guestEmail, "Not provided")}</td>
                                 </tr>
@@ -229,6 +244,37 @@
                 <#else>
                     <p>No guests have declined yet.</p>
                 </#if>
+
+                <!-- Additional Guests (Family Members) Attending -->
+                <h3 class="section-title">Additional Guests Attending</h3>
+                <p>Complete list of family members and plus-ones who are attending:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Guest Name</th>
+                            <th>Age Group</th>
+                            <th>Dietary Restrictions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <#-- This will be populated by the backend with family member data -->
+                        <#if attendingFamilyMembers?? && attendingFamilyMembers?size gt 0>
+                            <#list attendingFamilyMembers as member>
+                                <tr class="attending">
+                                    <td>${member.groupName}</td>
+                                    <td>${member.firstName} ${member.lastName}</td>
+                                    <td>${member.ageGroup!""}</td>
+                                    <td>${member.dietaryRestrictions!""}</td>
+                                </tr>
+                            </#list>
+                        <#else>
+                            <tr>
+                                <td colspan="4"><em>No additional guests attending yet.</em></td>
+                            </tr>
+                        </#if>
+                    </tbody>
+                </table>
 
                 <div class="update-info">
                     Last updated: ${lastUpdated!""}

@@ -4,11 +4,13 @@ import com.wedding.backend.wedding_app.dao.DonationDao;
 import com.wedding.backend.wedding_app.dto.DonationRequestDTO;
 import com.wedding.backend.wedding_app.dto.DonationResponseDTO;
 import com.wedding.backend.wedding_app.entity.DonationEntity;
+import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.enums.DonationStatus;
 import com.wedding.backend.wedding_app.enums.PaymentMethod;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wedding.backend.wedding_app.service.GuestService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -17,22 +19,29 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class DonationService {
 
     private final DonationDao donationDao;
     private final EmailService emailService;
-    private final Logger log = LoggerFactory.getLogger(DonationService.class);
-
-    public DonationService(DonationDao donationDao, EmailService emailService) {
-        this.donationDao = donationDao;
-        this.emailService = emailService;
-    }
+    private final GuestService guestService;
 
     /**
      * Submit a new donation
      */
     public DonationResponseDTO submitDonation(DonationRequestDTO request) {
         log.info("BEGIN - Processing donation submission from: {}", request.getDonorName());
+
+        // Look up guest if guestId is provided
+        GuestEntity guest = null;
+        if (request.getGuestId() != null) {
+            try {
+                guest = guestService.findById(request.getGuestId());
+            } catch (WeddingAppException e) {
+                log.warn("Guest ID {} not found for donation, proceeding without guest link", request.getGuestId());
+            }
+        }
 
         DonationEntity donation = DonationEntity.builder()
                 .donorName(request.getDonorName())
@@ -42,7 +51,7 @@ public class DonationService {
                 .paymentMethod(request.getPaymentMethod())
                 .paymentReference(request.getPaymentReference())
                 .message(request.getMessage())
-                .guestId(request.getGuestId())
+                .guest(guest)
                 .donationDate(OffsetDateTime.now())
                 .status(DonationStatus.PENDING)
                 .createdAt(OffsetDateTime.now())
@@ -174,7 +183,7 @@ public class DonationService {
                 .paymentReference(entity.getPaymentReference())
                 .message(entity.getMessage())
                 .status(entity.getStatus())
-                .guestId(entity.getGuestId())
+                .guestId(entity.getGuest() != null ? entity.getGuest().getId() : null)
                 .donationDate(entity.getDonationDate())
                 .confirmedDate(entity.getConfirmedDate())
                 .thankYouSentDate(entity.getThankYouSentDate())
