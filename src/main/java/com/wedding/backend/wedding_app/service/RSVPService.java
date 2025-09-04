@@ -16,7 +16,6 @@ import com.wedding.backend.wedding_app.repository.GuestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -159,11 +158,12 @@ public class RSVPService {
         // 1. Start guest confirmation email if requested and email is available
         if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
             log.info("Initiating asynchronous guest confirmation email");
-            sendGuestConfirmationEmailAsync(savedRSVP, guest);
+            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guest);
         }
 
         // 2. Always send admin notification (if enabled) - independent of guest confirmation
-        sendAdminNotificationEmailAsync(savedRSVP, guest);
+        RSVPSummaryDTO summary = buildRsvpSummary();
+        emailService.sendAdminNotificationEmailAsync(savedRSVP, guest, summary);
 
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(savedRSVP);
 
@@ -220,52 +220,6 @@ public class RSVPService {
         log.info("COMPLETED - RSVP for guest ID: {} deleted successfully", guestId);
     }
 
-    /**
-     * Send a confirmation email to the guest asynchronously
-     * @param rsvpEntity The RSVP entity
-     * @param guestEntity The guest entity
-     */
-    @Async
-    public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
-        try {
-            log.info("Asynchronously sending confirmation email to guest: {}", guestEntity.getEmail());
-            emailService.sendRSVPConfirmationEmail(rsvpEntity, guestEntity);
-            log.info("Successfully sent confirmation email to guest: {}", guestEntity.getEmail());
-        } catch (Exception e) {
-            log.error("Failed to send confirmation email to guest: {}", guestEntity.getEmail(), e);
-            // Errors are caught and logged but not propagated
-        }
-    }
-
-    /**
-     * Send an admin notification email with RSVP summary asynchronously
-     * @param rsvpEntity The RSVP entity that triggered the notification
-     * @param guestEntity The guest entity
-     */
-    @Async
-    public void sendAdminNotificationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
-        try {
-            // Check if admin notifications are enabled
-            if (!emailConfig.isSendAdminNotifications() ||
-                StringUtils.isBlank(emailConfig.getAdminEmail())) {
-                log.info("Admin notifications are disabled or no admin email configured");
-                return;
-            }
-
-            log.info("Asynchronously sending admin notification email");
-
-            // Create RSVP summary
-            RSVPSummaryDTO summary = buildRsvpSummary();
-
-            // Send admin notification with full summary
-            emailService.sendAdminRsvpNotification(rsvpEntity, guestEntity, summary);
-
-            log.info("Successfully sent admin notification email");
-        } catch (Exception e) {
-            log.error("Failed to send admin notification email", e);
-            // Errors are caught and logged but not propagated
-        }
-    }
 
     /**
      * Build a comprehensive summary of all RSVPs

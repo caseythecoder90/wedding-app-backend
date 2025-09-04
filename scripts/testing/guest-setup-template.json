@@ -475,6 +475,89 @@
           "isAttending": false
         }
       ]
+    },
+    {
+      "type": "FAMILY",
+      "groupName": "Test Large Family",
+      "maxAttendees": 6,
+      "primaryContact": {
+        "firstName": "Maria",
+        "lastName": "Rodriguez",
+        "email": "caseytheswe@gmail.com",
+        "phone": "555-0101",
+        "plusOneAllowed": false
+      },
+      "familyMembers": [
+        {
+          "firstName": "Carlos",
+          "lastName": "Rodriguez",
+          "ageGroup": "adult",
+          "dietaryRestrictions": "Vegetarian",
+          "isAttending": null
+        },
+        {
+          "firstName": "Sofia",
+          "lastName": "Rodriguez",
+          "ageGroup": "child",
+          "dietaryRestrictions": "No nuts",
+          "isAttending": null
+        },
+        {
+          "firstName": "Miguel",
+          "lastName": "Rodriguez",
+          "ageGroup": "child",
+          "dietaryRestrictions": "",
+          "isAttending": null
+        },
+        {
+          "firstName": "Isabel",
+          "lastName": "Rodriguez",
+          "ageGroup": "adult",
+          "dietaryRestrictions": "Gluten-free",
+          "isAttending": null
+        },
+        {
+          "firstName": "Baby Ana",
+          "lastName": "Rodriguez",
+          "ageGroup": "infant",
+          "dietaryRestrictions": "",
+          "isAttending": null
+        }
+      ]
+    },
+    {
+      "type": "PLUS_ONE",
+      "groupName": "Alex & Sarah",
+      "maxAttendees": 2,
+      "primaryContact": {
+        "firstName": "Alex",
+        "lastName": "Johnson",
+        "email": "caseytheswe@gmail.com",
+        "phone": "555-0202",
+        "plusOneAllowed": false
+      },
+      "familyMembers": [
+        {
+          "firstName": "Sarah",
+          "lastName": "Mitchell",
+          "ageGroup": "adult",
+          "dietaryRestrictions": "Pescatarian",
+          "isAttending": null
+        }
+      ]
+    },
+    {
+      "type": "SOLO",
+      "groupName": "Emma Solo",
+      "maxAttendees": 1,
+      "primaryContact": {
+        "firstName": "Emma",
+        "lastName": "Davis",
+        "email": "caseytheswe@gmail.com",
+        "phone": "555-0303",
+        "plusOneAllowed": true
+      },
+      "familyMembers": []
     }
   ]
 }

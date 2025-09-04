@@ -29,6 +29,9 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 30000
+      mail.smtp.timeout: 30000
+      mail.smtp.writetimeout: 30000
   freemarker:
     template-loader-path: classpath:/templates/
     suffix: ftlh
@@ -47,6 +50,9 @@ wedding:
     server:
       url: /
       description: Default Server URL
+    # API Key Authentication
+    key: ${WEDDING_API_KEY:wedding-secret-key-change-me}
+    enabled: ${WEDDING_API_ENABLED:false}
   email:
     attending-template-path: email/attending.ftlh
     not-attending-template-path: email/not-attending.ftlh

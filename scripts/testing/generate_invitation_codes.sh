@@ -3,7 +3,7 @@
 # Generate invitation codes script
 # Make sure your backend is running locally before executing
 
-BASE_URL="http://localhost:8080"  # Adjust port if different
+BASE_URL="https://wedding-app-backend-production.up.railway.app"  # Adjust port if different
 GENERATE_ENDPOINT="/v1/api/invitation/code/generate"  # Adjust endpoint path if different
 
 echo "Generate Invitation Codes for Guest Range"

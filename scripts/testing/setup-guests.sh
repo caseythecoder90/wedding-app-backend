@@ -3,7 +3,7 @@
 # Wedding Guest Setup Script
 # Reads guest-setup-template.json and creates family groups via API
 
-API_BASE_URL="http://localhost:8080/v1/api"
+API_BASE_URL="https://wedding-app-backend-production.up.railway.app/v1/api"
 GUEST_DATA_FILE="./guest-setup-template.json"
 
 # Colors for output

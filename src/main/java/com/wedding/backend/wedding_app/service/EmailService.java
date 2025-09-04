@@ -1,5 +1,6 @@
 package com.wedding.backend.wedding_app.service;
 
+import com.wedding.backend.wedding_app.annotations.EmailRetryable;
 import com.wedding.backend.wedding_app.config.EmailConfig;
 import com.wedding.backend.wedding_app.dto.RSVPSummaryDTO;
 import com.wedding.backend.wedding_app.entity.DonationEntity;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -257,6 +259,7 @@ public class EmailService {
      * @param htmlContent HTML content of the email
      * @throws MessagingException if there's an error sending the email
      */
+    @EmailRetryable
     private void sendHtmlEmail(String emailAddress, String emailSubject, String htmlContent)
         throws MessagingException {
 
@@ -445,5 +448,74 @@ public class EmailService {
         model.put(EMAIL_FIELD_HAS_DONATION_MESSAGE, StringUtils.isNotBlank(donation.getMessage()));
         
         return model;
+    }
+
+    /**
+     * Send a confirmation email to the guest asynchronously
+     * @param rsvpEntity The RSVP entity
+     * @param guestEntity The guest entity
+     */
+    @Async("emailTaskExecutor")
+    public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
+        try {
+            log.info("Asynchronously sending confirmation email to guest: {}", guestEntity.getEmail());
+            sendRSVPConfirmationEmail(rsvpEntity, guestEntity);
+            log.info("Successfully sent confirmation email to guest: {}", guestEntity.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send confirmation email to guest: {}", guestEntity.getEmail(), e);
+        }
+    }
+
+    /**
+     * Send an admin notification email with RSVP summary asynchronously
+     * @param rsvpEntity The RSVP entity that triggered the notification
+     * @param guestEntity The guest entity
+     * @param rsvpSummary The summary of all RSVPs
+     */
+    @Async("emailTaskExecutor")
+    public void sendAdminNotificationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity, RSVPSummaryDTO rsvpSummary) {
+        try {
+            if (!emailConfig.isSendAdminNotifications() ||
+                StringUtils.isBlank(emailConfig.getAdminEmail())) {
+                log.info("Admin notifications are disabled or no admin email configured");
+                return;
+            }
+
+            log.info("Asynchronously sending admin notification email");
+            sendAdminRsvpNotification(rsvpEntity, guestEntity, rsvpSummary);
+            log.info("Successfully sent admin notification email");
+        } catch (Exception e) {
+            log.error("Failed to send admin notification email", e);
+        }
+    }
+
+    /**
+     * Send donation confirmation email asynchronously
+     * @param donation The donation entity
+     */
+    @Async("emailTaskExecutor")
+    public void sendDonationConfirmationEmailAsync(DonationEntity donation) {
+        try {
+            log.info("Asynchronously sending donation confirmation email to: {}", donation.getDonorEmail());
+            sendDonationConfirmationEmail(donation);
+            log.info("Successfully sent donation confirmation email to: {}", donation.getDonorEmail());
+        } catch (Exception e) {
+            log.error("Failed to send donation confirmation email to: {}", donation.getDonorEmail(), e);
+        }
+    }
+
+    /**
+     * Send donation thank you email asynchronously
+     * @param donation The donation entity
+     */
+    @Async("emailTaskExecutor")
+    public void sendDonationThankYouEmailAsync(DonationEntity donation) {
+        try {
+            log.info("Asynchronously sending donation thank you email to: {}", donation.getDonorEmail());
+            sendDonationThankYouEmail(donation);
+            log.info("Successfully sent donation thank you email to: {}", donation.getDonorEmail());
+        } catch (Exception e) {
+            log.error("Failed to send donation thank you email to: {}", donation.getDonorEmail(), e);
+        }
     }
 }
