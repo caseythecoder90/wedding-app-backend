@@ -1,6 +1,6 @@
 package com.wedding.backend.wedding_app.service;
 
-import com.wedding.backend.wedding_app.config.EmailConfig;
+import com.wedding.backend.wedding_app.dao.GuestDao;
 import com.wedding.backend.wedding_app.dao.RSVPDao;
 import com.wedding.backend.wedding_app.dto.RSVPRequestDTO;
 import com.wedding.backend.wedding_app.dto.RSVPResponseDTO;
@@ -37,11 +37,11 @@ public class RSVPService {
             DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' h:mm a");
 
     private final RSVPDao rsvpDao;
+    private final GuestDao guestDao;
     private final GuestRepository guestRepository;
     private final FamilyGroupRepository familyGroupRepository;
     private final FamilyMemberRepository familyMemberRepository;
     private final EmailService emailService;
-    private final EmailConfig emailConfig;
 
     /**
      * Get RSVP by ID
@@ -155,15 +155,19 @@ public class RSVPService {
         }
         
         // Handle email notifications asynchronously
+        // Reload guest with eagerly loaded family members to avoid lazy loading issues in async context
+        GuestEntity guestWithFamilyMembers = guestDao.findGuestByIdWithFamilyMembers(guest.getId())
+                .orElse(guest); // Fallback to original guest if query fails
+        
         // 1. Start guest confirmation email if requested and email is available
-        if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
+        if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guestWithFamilyMembers.getEmail())) {
             log.info("Initiating asynchronous guest confirmation email");
-            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guest);
+            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guestWithFamilyMembers);
         }
 
         // 2. Always send admin notification (if enabled) - independent of guest confirmation
         RSVPSummaryDTO summary = buildRsvpSummary();
-        emailService.sendAdminNotificationEmailAsync(savedRSVP, guest, summary);
+        emailService.sendAdminNotificationEmailAsync(savedRSVP, guestWithFamilyMembers, summary);
 
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(savedRSVP);
 

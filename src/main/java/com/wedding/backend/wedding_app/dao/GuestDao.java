@@ -41,6 +41,43 @@ public class GuestDao {
     }
 
     /**
+     * Find guest by ID with eagerly loaded family members
+     * This method is specifically designed for async operations to avoid lazy loading issues
+     * @param id The guest ID
+     * @return Optional guest entity with family members loaded
+     */
+    @Transactional(readOnly = true)
+    public Optional<GuestEntity> findGuestByIdWithFamilyMembers(Long id) {
+        log.info("Fetching guest with ID: {} including family members", id);
+        
+        try {
+            Optional<GuestEntity> guestOpt = guestRepository.findByIdWithFamilyMembers(id);
+            
+            if (guestOpt.isPresent()) {
+                GuestEntity guest = guestOpt.get();
+                log.info("Guest found: {} {} with family group: {}", 
+                        guest.getFirstName(), guest.getLastName(), 
+                        guest.getFamilyGroup() != null ? guest.getFamilyGroup().getGroupName() : "none");
+                        
+                // Log family members count for debugging
+                if (guest.getFamilyGroup() != null && guest.getFamilyGroup().getFamilyMembers() != null) {
+                    log.info("Loaded {} family members for guest ID: {}", 
+                            guest.getFamilyGroup().getFamilyMembers().size(), id);
+                }
+            } else {
+                log.warn("Guest with ID: {} not found", id);
+            }
+            
+            return guestOpt;
+        } catch (Exception e) {
+            log.error("Error finding guest with family members for ID: {}", id, e);
+            // Fallback to regular findById to avoid complete failure
+            log.warn("Falling back to regular guest lookup without family members");
+            return findGuestById(id);
+        }
+    }
+
+    /**
      * Find guest by first and last name (case-insensitive)
      * @param firstName The guest's first name
      * @param lastName The guest's last name
