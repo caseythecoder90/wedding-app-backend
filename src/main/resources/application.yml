@@ -21,22 +21,15 @@ spring:
     cors:
       allowed-origins: https://wedding-app-frontend.vercel.app,http://localhost:3000,https://caseylovesyas.com,https://www.caseylovesyas.com,https://wedding-app-backend-production.up.railway.app
       allowed-methods: GET,POST,PUT,DELETE
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: caseythecoder90@gmail.com
-    password: pssxtmsexorkukhy
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-      mail.smtp.connectiontimeout: 30000
-      mail.smtp.timeout: 30000
-      mail.smtp.writetimeout: 30000
   freemarker:
     template-loader-path: classpath:/templates/
     suffix: ftlh
     cache: false # set to true in prod
     charset: UTF-8
+
+# Resend API Configuration
+resend:
+  api-key: ${RESEND_API_KEY:re_et1nN24p_G9fjUi7Jx2dZzDrGu71QKdad}
 
 # Wedding API properties
 wedding:
@@ -60,7 +53,7 @@ wedding:
     attending-subject: "Wedding RSVP Confirmation - We're excited to see you!"
     not-attending-subject: "Wedding RSVP Confirmation - Thank you for your response!"
     admin-notification-subject: "New Wedding RSVP Submission"
-    sender-email: caseythecoder90@gmail.com
+    sender-email: noreply@caseylovesyas.com
     admin-email: caseythecoder90@gmail.com
     send-admin-notifications: true
     donation-confirmation-template-path: email/donation-confirmation.ftlh

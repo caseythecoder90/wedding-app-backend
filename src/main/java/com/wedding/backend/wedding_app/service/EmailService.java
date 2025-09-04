@@ -1,5 +1,9 @@
 package com.wedding.backend.wedding_app.service;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import com.wedding.backend.wedding_app.annotations.EmailRetryable;
 import com.wedding.backend.wedding_app.config.EmailConfig;
 import com.wedding.backend.wedding_app.dto.RSVPSummaryDTO;
@@ -13,13 +17,9 @@ import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,7 @@ import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.*;
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
     private final Configuration freemarkerConfig;
     private final EmailConfig emailConfig;
 
@@ -253,31 +253,32 @@ public class EmailService {
     }
 
     /**
-     * Send an HTML email
+     * Send an HTML email using Resend API
      * @param emailAddress Recipient email address
      * @param emailSubject Email subject
      * @param htmlContent HTML content of the email
-     * @throws MessagingException if there's an error sending the email
+     * @throws ResendException if there's an error sending the email
      */
     @EmailRetryable
     private void sendHtmlEmail(String emailAddress, String emailSubject, String htmlContent)
-        throws MessagingException {
+        throws ResendException {
 
-        log.info("Creating and sending email to: {}", emailAddress);
+        log.info("Creating and sending email to: {} via Resend API", emailAddress);
 
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        CreateEmailOptions emailOptions = CreateEmailOptions.builder()
+                .from(emailConfig.getSenderEmail())
+                .to(emailAddress)
+                .subject(emailSubject)
+                .html(htmlContent)
+                .build();
 
-        helper.setTo(emailAddress);
-        helper.setSubject(emailSubject);
-        helper.setText(htmlContent, true);
-
-        String senderEmail = emailConfig.getSenderEmail();
-
-        helper.setFrom(senderEmail);
-
-        mailSender.send(mimeMessage);
-        log.info("Email sent successfully to: {}", emailAddress);
+        try {
+            CreateEmailResponse response = resend.emails().send(emailOptions);
+            log.info("Email sent successfully to: {} with Resend ID: {}", emailAddress, response.getId());
+        } catch (ResendException e) {
+            log.error("Failed to send email to: {} via Resend API", emailAddress, e);
+            throw e;
+        }
     }
 
     /**
@@ -310,7 +311,7 @@ public class EmailService {
         } catch (TemplateException e) {
             log.error("Template processing error for donation confirmation email", e);
             throw WeddingAppException.internalError("Email template processing failed: " + e.getMessage());
-        } catch (MessagingException e) {
+        } catch (ResendException e) {
             log.error("Failed to send donation confirmation email to: {}", donation.getDonorEmail(), e);
             throw WeddingAppException.internalError("Failed to send email: " + e.getMessage());
         } catch (Exception e) {
@@ -369,7 +370,7 @@ public class EmailService {
         } catch (TemplateException e) {
             log.error("Template processing error for donation thank you email", e);
             throw WeddingAppException.internalError("Email template processing failed: " + e.getMessage());
-        } catch (MessagingException e) {
+        } catch (ResendException e) {
             log.error("Failed to send thank you email to: {}", donation.getDonorEmail(), e);
             throw WeddingAppException.internalError("Failed to send email: " + e.getMessage());
         } catch (Exception e) {
