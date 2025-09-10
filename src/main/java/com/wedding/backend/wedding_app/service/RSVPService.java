@@ -11,10 +11,11 @@ import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.FamilyGroupRepository;
-import com.wedding.backend.wedding_app.repository.FamilyMemberRepository;
+import com.wedding.backend.wedding_app.dao.FamilyMemberDao;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,8 @@ public class RSVPService {
     private final GuestDao guestDao;
     private final GuestRepository guestRepository;
     private final FamilyGroupRepository familyGroupRepository;
-    private final FamilyMemberRepository familyMemberRepository;
+    private final FamilyMemberDao familyMemberDao;
+    private final FamilyMemberService familyMemberService;
     private final EmailService emailService;
 
     /**
@@ -119,9 +121,10 @@ public class RSVPService {
     public RSVPResponseDTO submitOrUpdateRSVP(RSVPRequestDTO request) {
         log.info("STARTED - Processing RSVP for guest ID: {}", request.getGuestId());
 
-        // Validate the guest exists
-        GuestEntity guest = guestRepository.findById(request.getGuestId())
+        // Validate the guest exists and eagerly load family members for async email processing
+        GuestEntity guest = guestDao.findGuestByIdWithFamilyMembers(request.getGuestId())
                 .orElseThrow(() -> WeddingAppException.guestNotFound(request.getGuestId()));
+
 
         // Save the primary guest RSVP
         RSVPEntity savedRSVP = rsvpDao.saveRSVP(
@@ -130,7 +133,7 @@ public class RSVPService {
                 request.getDietaryRestrictions());
 
         // Process family member RSVPs - this handles both family groups and plus-ones as family members
-        if (request.getFamilyMembers() != null && !request.getFamilyMembers().isEmpty()) {
+        if (CollectionUtils.isNotEmpty(request.getFamilyMembers())) {
             log.info("Processing family member RSVPs for {} members", request.getFamilyMembers().size());
             
             FamilyGroupEntity familyGroup = guest.getFamilyGroup();
@@ -144,30 +147,24 @@ public class RSVPService {
                 }
             }
             
-            processFamilyMemberRSVPs(request.getFamilyMembers(), familyGroup);
+            familyMemberService.processFamilyMemberRSVPs(request.getFamilyMembers(), familyGroup);
         }
 
         // If email was provided in the request, update the guest email
         if (StringUtils.isNotBlank(request.getEmail())) {
             log.info("Updating email for guest ID: {}", request.getGuestId());
             guest.setEmail(request.getEmail());
-            guestRepository.save(guest);
-        }
-        
-        // Handle email notifications asynchronously
-        // Reload guest with eagerly loaded family members to avoid lazy loading issues in async context
-        GuestEntity guestWithFamilyMembers = guestDao.findGuestByIdWithFamilyMembers(guest.getId())
-                .orElse(guest); // Fallback to original guest if query fails
-        
-        // 1. Start guest confirmation email if requested and email is available
-        if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guestWithFamilyMembers.getEmail())) {
-            log.info("Initiating asynchronous guest confirmation email");
-            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guestWithFamilyMembers);
+            guestDao.updateGuest(guest);
         }
 
-        // 2. Always send admin notification (if enabled) - independent of guest confirmation
+        // Send emails using the already loaded guest (family members eagerly loaded)
+        if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
+            log.info("Initiating asynchronous guest confirmation email");
+            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guest);
+        }
+
         RSVPSummaryDTO summary = buildRsvpSummary();
-        emailService.sendAdminNotificationEmailAsync(savedRSVP, guestWithFamilyMembers, summary);
+        emailService.sendAdminNotificationEmailAsync(savedRSVP, guest, summary);
 
         RSVPResponseDTO responseDTO = mapToRSVPResponseDTO(savedRSVP);
 
@@ -193,7 +190,7 @@ public class RSVPService {
         // Reset family members' attendance if guest is part of a family group
         if (guest != null && guest.getFamilyGroup() != null) {
             log.info("Resetting family members' attendance for guest ID: {}", guest.getId());
-            resetFamilyMembersAttendance(guest.getFamilyGroup());
+            familyMemberService.resetAllFamilyMembersAttendance(guest.getFamilyGroup());
         }
         
         rsvpDao.deleteRSVP(id);
@@ -216,7 +213,7 @@ public class RSVPService {
         // Reset family members' attendance if guest is part of a family group
         if (guest.getFamilyGroup() != null) {
             log.info("Resetting family members' attendance for guest ID: {}", guestId);
-            resetFamilyMembersAttendance(guest.getFamilyGroup());
+            familyMemberService.resetAllFamilyMembersAttendance(guest.getFamilyGroup());
         }
         
         rsvpDao.deleteRSVPByGuestId(guestId);
@@ -244,7 +241,7 @@ public class RSVPService {
             long totalNotAttending = totalRsvps - totalAttending;
 
             // Get all attending family members once (filtered at DB level)
-            List<FamilyMemberEntity> attendingFamilyMembers = familyMemberRepository.findAllAttending();
+            List<FamilyMemberEntity> attendingFamilyMembers = familyMemberDao.findAllAttending();
             long totalFamilyMembers = attendingFamilyMembers.size();
                     
             long totalGuests = totalAttending + totalFamilyMembers;
@@ -293,96 +290,6 @@ public class RSVPService {
     }
 
     /**
-     * Process family member RSVPs for a family group with maxAttendees validation
-     * @param familyMemberRequests List of family member RSVP requests
-     * @param familyGroup The family group entity
-     */
-    private void processFamilyMemberRSVPs(List<RSVPRequestDTO.FamilyMemberRSVPRequest> familyMemberRequests, 
-                                         FamilyGroupEntity familyGroup) {
-        log.info("STARTED - Processing {} family member RSVPs for group: {}", 
-                familyMemberRequests.size(), familyGroup.getGroupName());
-
-        // Validate total doesn't exceed maxAttendees (primary guest + family members)
-        int totalRequestedAttendees = 1; // primary guest
-        totalRequestedAttendees += (int) familyMemberRequests.stream()
-                .filter(req -> Boolean.TRUE.equals(req.getIsAttending()))
-                .count();
-                
-        if (familyGroup.getMaxAttendees() != null && totalRequestedAttendees > familyGroup.getMaxAttendees()) {
-            log.warn("Family group {} requested {} attendees but max is {}", 
-                    familyGroup.getGroupName(), totalRequestedAttendees, familyGroup.getMaxAttendees());
-            throw WeddingAppException.invalidParameter("familyMembers - exceeds maxAttendees limit");
-        }
-
-        for (RSVPRequestDTO.FamilyMemberRSVPRequest memberRequest : familyMemberRequests) {
-            try {
-                FamilyMemberEntity familyMember;
-                
-                if (memberRequest.getFamilyMemberId() != null) {
-                    // Update existing family member
-                    familyMember = familyMemberRepository.findById(memberRequest.getFamilyMemberId())
-                            .orElseThrow(() -> WeddingAppException.familyMemberNotFound(memberRequest.getFamilyMemberId()));
-                    
-                    log.info("Updating existing family member: {} {}", 
-                            memberRequest.getFirstName(), memberRequest.getLastName());
-                    
-                    // Update fields
-                    familyMember.setFirstName(memberRequest.getFirstName());
-                    familyMember.setLastName(memberRequest.getLastName());
-                    familyMember.setAgeGroup(normalizeAgeGroup(memberRequest.getAgeGroup()));
-                    familyMember.setIsAttending(memberRequest.getIsAttending());
-                    familyMember.setDietaryRestrictions(memberRequest.getDietaryRestrictions());
-                    
-                } else {
-                    // Check if family member already exists by name (case-insensitive) to prevent duplicates
-                    String requestFirstName = memberRequest.getFirstName().trim().toLowerCase();
-                    String requestLastName = memberRequest.getLastName().trim().toLowerCase();
-                    
-                    Optional<FamilyMemberEntity> existingMember = familyGroup.getFamilyMembers().stream()
-                            .filter(member -> 
-                                member.getFirstName().trim().toLowerCase().equals(requestFirstName) &&
-                                member.getLastName().trim().toLowerCase().equals(requestLastName))
-                            .findFirst();
-                    
-                    if (existingMember.isPresent()) {
-                        // Update existing family member found by name
-                        familyMember = existingMember.get();
-                        log.info("Found existing family member by name (case-insensitive), updating: {} {} (ID: {})", 
-                                memberRequest.getFirstName(), memberRequest.getLastName(), familyMember.getId());
-                        
-                        familyMember.setAgeGroup(normalizeAgeGroup(memberRequest.getAgeGroup()));
-                        familyMember.setIsAttending(memberRequest.getIsAttending());
-                        familyMember.setDietaryRestrictions(memberRequest.getDietaryRestrictions());
-                    } else {
-                        // Create new family member (additional guest)
-                        log.info("Creating new family member/additional guest: {} {}", 
-                                memberRequest.getFirstName(), memberRequest.getLastName());
-                        
-                        familyMember = FamilyMemberEntity.builder()
-                                .firstName(memberRequest.getFirstName())
-                                .lastName(memberRequest.getLastName())
-                                .ageGroup(normalizeAgeGroup(memberRequest.getAgeGroup()))
-                                .isAttending(memberRequest.getIsAttending())
-                                .dietaryRestrictions(memberRequest.getDietaryRestrictions())
-                                .familyGroup(familyGroup)
-                                .build();
-                    }
-                }
-                
-                // Save the family member
-                familyMemberRepository.save(familyMember);
-                
-            } catch (Exception e) {
-                log.error("Error processing family member RSVP: {} {}", 
-                        memberRequest.getFirstName(), memberRequest.getLastName(), e);
-                // Continue processing other family members even if one fails
-            }
-        }
-        
-        log.info("COMPLETED - Processed family member RSVPs for group: {}", familyGroup.getGroupName());
-    }
-
-    /**
      * Map RSVP entity to response DTO
      * @param rsvp RSVP entity
      * @return RSVP response DTO
@@ -402,30 +309,6 @@ public class RSVPService {
                 .dietaryRestrictions(rsvp.getDietaryRestrictions())
                 .submittedAt(rsvp.getSubmittedAt())
                 .build();
-    }
-
-    /**
-     * Reset all family members' attendance status to null when RSVP is deleted
-     * @param familyGroup The family group whose members need to be reset
-     */
-    private void resetFamilyMembersAttendance(FamilyGroupEntity familyGroup) {
-        log.info("STARTED - Resetting family members' attendance for group: {}", familyGroup.getGroupName());
-        
-        List<FamilyMemberEntity> familyMembers = familyGroup.getFamilyMembers();
-        if (familyMembers != null && !familyMembers.isEmpty()) {
-            for (FamilyMemberEntity member : familyMembers) {
-                log.info("Resetting attendance for family member: {} {} (ID: {})", 
-                        member.getFirstName(), member.getLastName(), member.getId());
-                member.setIsAttending(null);
-                member.setDietaryRestrictions(null);
-            }
-            
-            // Save all updated family members
-            familyMemberRepository.saveAll(familyMembers);
-            log.info("Reset attendance status for {} family members", familyMembers.size());
-        }
-        
-        log.info("COMPLETED - Reset family members' attendance for group: {}", familyGroup.getGroupName());
     }
 
     /**
@@ -450,22 +333,10 @@ public class RSVPService {
         // Update the guest to be in this family group
         guest.setFamilyGroup(savedFamilyGroup);
         guest.setIsPrimaryContact(true);
-        guestRepository.save(guest);
+        guestDao.updateGuest(guest);
         
         log.info("Created temporary family group ID: {} for plus-one", savedFamilyGroup.getId());
         return savedFamilyGroup;
     }
 
-    /**
-     * Normalize age group to consistent lowercase format
-     * @param ageGroup The age group string to normalize
-     * @return Normalized age group string in lowercase
-     */
-    private String normalizeAgeGroup(String ageGroup) {
-        if (StringUtils.isBlank(ageGroup)) {
-            return ageGroup;
-        }
-        
-        return ageGroup.trim().toLowerCase();
-    }
 }

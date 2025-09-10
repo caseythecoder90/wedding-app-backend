@@ -177,11 +177,9 @@ public class InvitationCodeService {
                     .createdAt(familyGroup.getCreatedAt())
                     .build();
 
-            // Get family members
+            // Get family members with smart selection based on maxAttendees
             if (familyGroup.getFamilyMembers() != null) {
-                familyMembersDTO = familyGroup.getFamilyMembers().stream()
-                        .map(this::buildFamilyMemberResponseDTO)
-                        .collect(Collectors.toList());
+                familyMembersDTO = selectFamilyMembersForInvitation(familyGroup);
             }
             
         } else if (primaryGuest.getPlusOneAllowed() != null && primaryGuest.getPlusOneAllowed()) {
@@ -241,6 +239,63 @@ public class InvitationCodeService {
                 .isAttending(familyMember.getIsAttending())
                 .familyGroupId(familyMember.getFamilyGroup().getId())
                 .build();
+    }
+
+    /**
+     * Selects family members to return for invitation validation, respecting maxAttendees limit.
+     * Prioritizes attending members, then non-attending members up to the limit.
+     * @param familyGroup The family group entity
+     * @return List of family member DTOs limited by maxAttendees
+     */
+    private List<FamilyMemberResponseDTO> selectFamilyMembersForInvitation(FamilyGroupEntity familyGroup) {
+        log.info("Selecting family members for invitation validation, group: {}, maxAttendees: {}", 
+                familyGroup.getGroupName(), familyGroup.getMaxAttendees());
+
+        List<FamilyMemberEntity> allFamilyMembers = familyGroup.getFamilyMembers();
+        
+        // If no maxAttendees limit, return all members
+        if (familyGroup.getMaxAttendees() == null) {
+            log.info("No maxAttendees limit, returning all {} family members", allFamilyMembers.size());
+            return allFamilyMembers.stream()
+                    .map(this::buildFamilyMemberResponseDTO)
+                    .collect(Collectors.toList());
+        }
+
+        // Calculate how many family members we can include (maxAttendees - 1 for primary guest)
+        int maxFamilyMembers = familyGroup.getMaxAttendees() - 1;
+        
+        if (maxFamilyMembers <= 0) {
+            log.info("MaxAttendees is 1 or less, no family members can be included");
+            return new ArrayList<>();
+        }
+
+        // Separate attending and non-attending members
+        List<FamilyMemberEntity> attendingMembers = allFamilyMembers.stream()
+                .filter(member -> Boolean.TRUE.equals(member.getIsAttending()))
+                .toList();
+                
+        List<FamilyMemberEntity> nonAttendingMembers = allFamilyMembers.stream()
+                .filter(member -> !Boolean.TRUE.equals(member.getIsAttending()))
+                .toList();
+
+        // First, add all attending members (they should always be shown)
+        List<FamilyMemberEntity> selectedMembers = new ArrayList<>(attendingMembers);
+        
+        // Then add non-attending members up to the limit
+        int remainingSlots = maxFamilyMembers - attendingMembers.size();
+        if (remainingSlots > 0) {
+            selectedMembers.addAll(nonAttendingMembers.stream()
+                    .limit(remainingSlots)
+                    .toList());
+        }
+
+        log.info("Selected {} family members (attending: {}, non-attending: {}) from total {} members", 
+                selectedMembers.size(), attendingMembers.size(), 
+                Math.min(remainingSlots, nonAttendingMembers.size()), allFamilyMembers.size());
+
+        return selectedMembers.stream()
+                .map(this::buildFamilyMemberResponseDTO)
+                .collect(Collectors.toList());
     }
 
     /**
