@@ -5,25 +5,25 @@ import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import com.wedding.backend.wedding_app.repository.FamilyGroupRepository;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Slf4j
+@Component
+@RequiredArgsConstructor
 public class GuestDao {
 
     private final GuestRepository guestRepository;
     private final FamilyGroupRepository familyGroupRepository;
-    private final Logger log = LoggerFactory.getLogger(GuestDao.class);
-    
-    public GuestDao(GuestRepository guestRepository, FamilyGroupRepository familyGroupRepository) {
-        this.guestRepository = guestRepository;
-        this.familyGroupRepository = familyGroupRepository;
-    }
     
     /**
      * Find guest by ID
@@ -201,7 +201,7 @@ public class GuestDao {
 
         try {
             // Ensure the guest exists
-            if (guest.getId() == null || !guestRepository.existsById(guest.getId())) {
+            if (guest.getId() == null || BooleanUtils.isFalse(guestRepository.existsById(guest.getId()))) {
                 throw WeddingAppException.guestNotFound(guest.getId());
             }
 

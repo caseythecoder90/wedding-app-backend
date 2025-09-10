@@ -285,6 +285,7 @@ public class EmailService {
      * Sends a donation confirmation email to the donor
      * @param donation The donation entity
      */
+
     public void sendDonationConfirmationEmail(DonationEntity donation) {
         log.info("STARTED - Sending donation confirmation email to: {}", donation.getDonorEmail());
 
@@ -321,7 +322,7 @@ public class EmailService {
     }
 
     /**
-     * Sends a thank you email to the donor using the configured template
+     * Sends a thank-you email to the donor using the configured template
      * @param donation The confirmed donation entity
      */
     public void sendDonationThankYouEmail(DonationEntity donation) {
@@ -339,26 +340,21 @@ public class EmailService {
         }
 
         try {
-            // Get template path from config
+
             String templatePath = emailConfig.getDonationThankYouTemplatePath();
 
-            // Fallback to constant if config value is not set
             if (StringUtils.isBlank(templatePath)) {
                 templatePath = DONATION_THANK_YOU_TEMPLATE;
             }
 
-            // Get subject from config
             String subject = emailConfig.getDonationThankYouSubject();
 
-            // Fallback to constant if config value is not set
             if (StringUtils.isBlank(subject)) {
                 subject = DONATION_THANK_YOU_SUBJECT;
             }
 
-            // Build the template model
             Map<String, Object> model = buildDonationThankYouEmailModel(donation);
 
-            // Process the template and send the email
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(donation.getDonorEmail(), subject, htmlContent);
 

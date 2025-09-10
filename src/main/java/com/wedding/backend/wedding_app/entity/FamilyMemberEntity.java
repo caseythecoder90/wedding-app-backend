@@ -12,9 +12,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "family_members")
+@ToString(exclude = {"familyGroup"})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

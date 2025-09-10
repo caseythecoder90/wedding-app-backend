@@ -61,7 +61,7 @@ public class DonationService {
         DonationEntity savedDonation = donationDao.saveDonation(donation);
 
         try {
-            emailService.sendDonationConfirmationEmail(savedDonation);
+            emailService.sendDonationConfirmationEmailAsync(savedDonation);
         } catch (Exception e) {
             log.error("Failed to send donation confirmation email", e);
         }
