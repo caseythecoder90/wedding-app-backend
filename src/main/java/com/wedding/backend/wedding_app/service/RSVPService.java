@@ -159,8 +159,9 @@ public class RSVPService {
 
         // Send emails using the already loaded guest (family members eagerly loaded)
         if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
-            log.info("Initiating asynchronous guest confirmation email");
-            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guest);
+            log.info("Initiating asynchronous guest confirmation email in language: {}", 
+                    request.getPreferredLanguage());
+            emailService.sendGuestConfirmationEmailAsync(savedRSVP, guest, request.getPreferredLanguage());
         }
 
         RSVPSummaryDTO summary = buildRsvpSummary();

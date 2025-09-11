@@ -18,6 +18,7 @@ public class RSVPRequestDTO {
     private String dietaryRestrictions;
     private String email;
     private boolean sendConfirmationEmail;
+    private String preferredLanguage; // "en" or "pt-BR"
     private OffsetDateTime submittedAt;
     
     // Family members - includes existing family members and new additional guests up to maxAttendees limit

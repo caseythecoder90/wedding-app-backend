@@ -55,7 +55,18 @@ public class EmailService {
      * @param guestEntity The guest entity
      */
     public void sendRSVPConfirmationEmail(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
-        log.info("STARTED - Sending RSVP confirmation email to: {}", guestEntity.getEmail());
+        sendRSVPConfirmationEmail(rsvpEntity, guestEntity, "en"); // Default to English
+    }
+
+    /**
+     * Sends an RSVP confirmation email with language preference
+     * @param rsvpEntity The RSVP entity containing all needed data
+     * @param guestEntity The guest entity
+     * @param preferredLanguage The preferred language ("en" or "pt-BR")
+     */
+    public void sendRSVPConfirmationEmail(RSVPEntity rsvpEntity, GuestEntity guestEntity, String preferredLanguage) {
+        log.info("STARTED - Sending RSVP confirmation email to: {} in language: {}", 
+                guestEntity.getEmail(), preferredLanguage);
 
         if (StringUtils.isBlank(guestEntity.getEmail())) {
             log.warn("Cannot send email - guest email is invalid");
@@ -63,26 +74,37 @@ public class EmailService {
         }
 
         boolean isAttending = rsvpEntity.getAttending();
+        boolean isPortuguese = "pt-BR".equalsIgnoreCase(preferredLanguage);
 
         try {
+            String templatePath;
+            String subject;
+            
+            if (isAttending) {
+                templatePath = isPortuguese ? emailConfig.getAttendingTemplatePathPt() : emailConfig.getAttendingTemplatePath();
+                subject = isPortuguese ? emailConfig.getAttendingSubjectPt() : emailConfig.getAttendingSubject();
+            } else {
+                templatePath = isPortuguese ? emailConfig.getNotAttendingTemplatePathPt() : emailConfig.getNotAttendingTemplatePath();
+                subject = isPortuguese ? emailConfig.getNotAttendingSubjectPt() : emailConfig.getNotAttendingSubject();
+            }
 
-            String templatePath = isAttending
-                    ? emailConfig.getAttendingTemplatePath()
-                    : emailConfig.getNotAttendingTemplatePath();
+            // Fallback to English if Portuguese templates are not configured
+            if (StringUtils.isBlank(templatePath)) {
+                log.warn("Portuguese template not configured, falling back to English for language: {}", preferredLanguage);
+                templatePath = isAttending ? emailConfig.getAttendingTemplatePath() : emailConfig.getNotAttendingTemplatePath();
+                subject = isAttending ? emailConfig.getAttendingSubject() : emailConfig.getNotAttendingSubject();
+            }
 
-            String subject = isAttending
-                    ? emailConfig.getAttendingSubject()
-                    : emailConfig.getNotAttendingSubject();
-
-            Map<String, Object> model = buildRsvpEmailModel(rsvpEntity, guestEntity);
+            Map<String, Object> model = buildRsvpEmailModel(rsvpEntity, guestEntity, preferredLanguage);
 
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(guestEntity.getEmail(), subject, htmlContent);
             
-            log.info("COMPLETED - RSVP confirmation email sent successfully to: {}", guestEntity.getEmail());
+            log.info("COMPLETED - RSVP confirmation email sent successfully to: {} in language: {}", 
+                    guestEntity.getEmail(), preferredLanguage);
 
         } catch (Exception e) {
-            log.error("Exception while sending RSVP email: ", e);
+            log.error("Exception while sending RSVP email in language {}: ", preferredLanguage, e);
             throw new RuntimeException(e);
         }
     }
@@ -173,6 +195,17 @@ public class EmailService {
      * @return Map containing all template variables
      */
     private Map<String, Object> buildRsvpEmailModel(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
+        return buildRsvpEmailModel(rsvpEntity, guestEntity, "en"); // Default to English
+    }
+
+    /**
+     * Build a model map for RSVP-related emails with language preference
+     * @param rsvpEntity The RSVP entity
+     * @param guestEntity The guest entity
+     * @param preferredLanguage The preferred language for date formatting
+     * @return Map containing all template variables
+     */
+    private Map<String, Object> buildRsvpEmailModel(RSVPEntity rsvpEntity, GuestEntity guestEntity, String preferredLanguage) {
         Map<String, Object> model = new HashMap<>();
 
         // Guest information
@@ -454,12 +487,26 @@ public class EmailService {
      */
     @Async("emailTaskExecutor")
     public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
+        sendGuestConfirmationEmailAsync(rsvpEntity, guestEntity, "en"); // Default to English
+    }
+
+    /**
+     * Send a confirmation email to the guest asynchronously with language preference
+     * @param rsvpEntity The RSVP entity
+     * @param guestEntity The guest entity
+     * @param preferredLanguage The preferred language ("en" or "pt-BR")
+     */
+    @Async("emailTaskExecutor")
+    public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity, String preferredLanguage) {
         try {
-            log.info("Asynchronously sending confirmation email to guest: {}", guestEntity.getEmail());
-            sendRSVPConfirmationEmail(rsvpEntity, guestEntity);
-            log.info("Successfully sent confirmation email to guest: {}", guestEntity.getEmail());
+            log.info("Asynchronously sending confirmation email to guest: {} in language: {}", 
+                    guestEntity.getEmail(), preferredLanguage);
+            sendRSVPConfirmationEmail(rsvpEntity, guestEntity, preferredLanguage);
+            log.info("Successfully sent confirmation email to guest: {} in language: {}", 
+                    guestEntity.getEmail(), preferredLanguage);
         } catch (Exception e) {
-            log.error("Failed to send confirmation email to guest: {}", guestEntity.getEmail(), e);
+            log.error("Failed to send confirmation email to guest: {} in language: {}", 
+                    guestEntity.getEmail(), preferredLanguage, e);
         }
     }
 
