@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.wedding.backend.wedding_app.util.WeddingErrorConstants.FAMILY_MEMBER_GUEST_NOT_ELIGIBLE;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -121,7 +123,6 @@ public class RSVPService {
     public RSVPResponseDTO submitOrUpdateRSVP(RSVPRequestDTO request) {
         log.info("STARTED - Processing RSVP for guest ID: {}", request.getGuestId());
 
-        // Validate the guest exists and eagerly load family members for async email processing
         GuestEntity guest = guestDao.findGuestByIdWithFamilyMembers(request.getGuestId())
                 .orElseThrow(() -> WeddingAppException.guestNotFound(request.getGuestId()));
 
@@ -143,7 +144,7 @@ public class RSVPService {
                     log.info("Processing plus-one as family member for solo guest");
                     familyGroup = createTemporaryFamilyGroupForPlusOne(guest);
                 } else {
-                    throw WeddingAppException.invalidParameter("familyMembers - guest not in family group and not plus-one eligible");
+                    throw WeddingAppException.invalidParameter(FAMILY_MEMBER_GUEST_NOT_ELIGIBLE);
                 }
             }
             
@@ -157,7 +158,6 @@ public class RSVPService {
             guestDao.updateGuest(guest);
         }
 
-        // Send emails using the already loaded guest (family members eagerly loaded)
         if (request.isSendConfirmationEmail() && StringUtils.isNotBlank(guest.getEmail())) {
             log.info("Initiating asynchronous guest confirmation email in language: {}", 
                     request.getPreferredLanguage());

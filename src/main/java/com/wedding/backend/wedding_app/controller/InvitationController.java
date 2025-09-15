@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.PNG_EXTENSION;
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.QR_CODE_ATTACHMENT_HEADER;
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.QR_CODE_DEFAULT_FILENAME;
 import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.SPACE;
 
 @RestController
@@ -70,14 +74,13 @@ public class InvitationController {
         
         log.info("BEGIN - Generating QR code for invitation code: {}", code);
         
-        // Validate code first
         invitationCodeService.validateCode(code);
         
         byte[] qrCode = qrCodeService.generateQRCodeForInvitation(code);
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.IMAGE_PNG);
-        headers.setContentDispositionFormData("attachment", filename + ".png");
+        headers.setContentDispositionFormData(QR_CODE_ATTACHMENT_HEADER, filename + PNG_EXTENSION);
         
         log.info("END - Generated QR code for invitation code: {}", code);
         return new ResponseEntity<>(qrCode, headers, HttpStatus.OK);
@@ -161,5 +164,28 @@ public class InvitationController {
         
         log.info("END - Marked invitation code as used: {}", code);
         return ResponseEntity.noContent().build();
+    }
+    
+    @InvitationApiDocs.GenerateQRCodeForUrl
+    @PostMapping(value = "/qrcode/generate", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> generateQRCodeForUrl(
+            @Parameter(description = "The URL to encode in the QR code", required = true)
+            @RequestParam String url,
+            
+            @Parameter(description = "Filename for the downloaded QR code")
+            @RequestParam(required = false) String filename) {
+        
+        log.info("BEGIN - Generating QR code for URL: {}", url);
+        
+        byte[] qrCode = qrCodeService.generateQRCodeForUrl(url);
+
+        String downloadFilename = StringUtils.isNotBlank(filename) ? filename : QR_CODE_DEFAULT_FILENAME;
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        headers.setContentDispositionFormData(QR_CODE_ATTACHMENT_HEADER, downloadFilename + PNG_EXTENSION);
+        
+        log.info("END - Generated QR code for URL: {}", url);
+        return new ResponseEntity<>(qrCode, headers, HttpStatus.OK);
     }
 }

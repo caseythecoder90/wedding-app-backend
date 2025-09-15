@@ -184,4 +184,35 @@ public class InvitationApiDocs {
     })
     public @interface MarkCodeAsUsed {
     }
+
+    /**
+     * Documentation for generating QR codes for custom URLs
+     */
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Operation(
+        summary = "Generate QR code for any URL", 
+        description = "Creates a QR code that encodes the provided URL. " +
+                      "Can be used for wedding website, social media links, registry links, or any custom URL. " +
+                      "Returns a PNG image file that can be downloaded and shared."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "QR code generated successfully",
+            content = @Content(mediaType = "image/png")
+        ),
+        @ApiResponse(
+            responseCode = "400", 
+            description = "Invalid URL parameter",
+            content = @Content(mediaType = "application/json")
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "Error generating QR code",
+            content = @Content(mediaType = "application/json")
+        )
+    })
+    public @interface GenerateQRCodeForUrl {
+    }
 }

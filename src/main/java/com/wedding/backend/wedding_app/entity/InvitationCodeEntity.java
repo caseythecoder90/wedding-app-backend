@@ -13,12 +13,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "invitation_codes")
 @Data
+@ToString(exclude = {"guest"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

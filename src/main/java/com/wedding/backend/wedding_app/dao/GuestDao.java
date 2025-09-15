@@ -7,15 +7,17 @@ import com.wedding.backend.wedding_app.repository.FamilyGroupRepository;
 import com.wedding.backend.wedding_app.repository.GuestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+
+import static com.wedding.backend.wedding_app.util.WeddingServiceConstants.NONE;
 
 @Slf4j
 @Component
@@ -55,12 +57,16 @@ public class GuestDao {
             
             if (guestOpt.isPresent()) {
                 GuestEntity guest = guestOpt.get();
+                String familyGroupName = Objects.nonNull(guest.getFamilyGroup()) 
+                    ? guest.getFamilyGroup().getGroupName() 
+                    : NONE;
+                    
                 log.info("Guest found: {} {} with family group: {}", 
-                        guest.getFirstName(), guest.getLastName(), 
-                        guest.getFamilyGroup() != null ? guest.getFamilyGroup().getGroupName() : "none");
+                        guest.getFirstName(), guest.getLastName(), familyGroupName);
                         
                 // Log family members count for debugging
-                if (guest.getFamilyGroup() != null && guest.getFamilyGroup().getFamilyMembers() != null) {
+                if (Objects.nonNull(guest.getFamilyGroup()) && 
+                    CollectionUtils.isNotEmpty(guest.getFamilyGroup().getFamilyMembers())) {
                     log.info("Loaded {} family members for guest ID: {}", 
                             guest.getFamilyGroup().getFamilyMembers().size(), id);
                 }
@@ -85,6 +91,12 @@ public class GuestDao {
      */
     @Transactional(readOnly = true)
     public Optional<GuestEntity> findGuestByFullName(String firstName, String lastName) {
+        if (StringUtils.isAnyBlank(firstName, lastName)) {
+            log.warn("Cannot search for guest with blank name fields: firstName='{}', lastName='{}'", 
+                    firstName, lastName);
+            return Optional.empty();
+        }
+        
         log.info("Fetching guest with firstName={}, lastName={}", firstName, lastName);
 
         try {
@@ -129,6 +141,11 @@ public class GuestDao {
      */
     @Transactional(readOnly = true)
     public List<GuestEntity> findGuestsByLastName(String lastName) {
+        if (StringUtils.isBlank(lastName)) {
+            log.warn("Cannot search for guests with blank last name");
+            return List.of();
+        }
+        
         log.info("Fetching guests with lastName={}", lastName);
 
         try {
@@ -151,13 +168,11 @@ public class GuestDao {
      * @return Created guest entity
      */
     @Transactional
-    public GuestEntity saveGuest(
-            String firstName,
-            String lastName,
-            String email,
-            String phone,
-            boolean plusOneAllowed) {
-
+    public GuestEntity saveGuest(String firstName, String lastName, String email, String phone, boolean plusOneAllowed) {
+        if (StringUtils.isAnyBlank(firstName, lastName)) {
+            throw WeddingAppException.invalidParameter("First name and last name are required");
+        }
+        
         log.info("Creating new guest: {} {}", firstName, lastName);
 
         try {
@@ -197,11 +212,15 @@ public class GuestDao {
      */
     @Transactional
     public GuestEntity updateGuest(GuestEntity guest) {
+        if (Objects.isNull(guest) || Objects.isNull(guest.getId())) {
+            throw WeddingAppException.invalidParameter("Guest and guest ID cannot be null");
+        }
+        
         log.info("Updating guest with ID: {}", guest.getId());
 
         try {
-            // Ensure the guest exists
-            if (guest.getId() == null || BooleanUtils.isFalse(guestRepository.existsById(guest.getId()))) {
+
+            if (BooleanUtils.isFalse(guestRepository.existsById(guest.getId()))) {
                 throw WeddingAppException.guestNotFound(guest.getId());
             }
 
@@ -209,7 +228,6 @@ public class GuestDao {
             log.info("Guest updated successfully: {}", updatedGuest);
             return updatedGuest;
         } catch (WeddingAppException e) {
-            // Re-throw application exceptions
             throw e;
         } catch (Exception e) {
             log.error("Error updating guest with ID: {}", guest.getId(), e);
@@ -223,10 +241,14 @@ public class GuestDao {
      */
     @Transactional
     public void deleteGuest(Long id) {
+        if (Objects.isNull(id)) {
+            throw WeddingAppException.invalidParameter("Guest ID cannot be null");
+        }
+        
         log.info("Deleting guest with ID: {}", id);
 
         try {
-            if (!guestRepository.existsById(id)) {
+            if (BooleanUtils.isFalse(guestRepository.existsById(id))) {
                 log.warn("No guest found with ID: {} to delete", id);
                 throw WeddingAppException.guestNotFound(id);
             }
@@ -248,7 +270,6 @@ public class GuestDao {
             guestRepository.deleteById(id);
             log.info("Guest with ID: {} deleted successfully", id);
         } catch (WeddingAppException e) {
-            // Re-throw application exceptions
             throw e;
         } catch (Exception e) {
             log.error("Error deleting guest with ID: {}", id, e);

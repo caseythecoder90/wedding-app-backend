@@ -16,12 +16,15 @@ import com.wedding.backend.wedding_app.entity.RSVPEntity;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -75,15 +78,14 @@ public class InvitationCodeService {
     public InvitationCodeEntity createInvitationCode(Long guestId, String codeType) {
         log.info("BEGIN - Creating invitation code for guest ID: {}, type: {}", guestId, codeType);
 
-        Optional<GuestEntity> guestOpt = guestDao.findGuestById(guestId);
-        if (guestOpt.isEmpty()) {
-            log.error("Guest not found with ID: {}", guestId);
-            throw WeddingAppException.guestNotFound(guestId);
-        }
+        GuestEntity guest = guestDao.findGuestById(guestId)
+                .orElseThrow(() -> {
+                    log.error("Guest not found with ID: {}", guestId);
+                    return WeddingAppException.guestNotFound(guestId);
+                });
 
         try {
             String code = generateUniqueCode();
-            GuestEntity guest = guestOpt.get();
 
             InvitationCodeEntity invitationCode = InvitationCodeEntity.builder()
                     .code(code)
@@ -113,23 +115,19 @@ public class InvitationCodeService {
     public GuestEntity validateCode(String code) {
         log.info("BEGIN - Validating invitation code: {}", code);
 
-        Optional<InvitationCodeEntity> invCodeOpt = invitationDao.findInvitationByCode(code);
+        InvitationCodeEntity invitationCode = invitationDao.findInvitationByCode(code)
+                .orElseThrow(() -> {
+                    log.warn("Invalid invitation code - throwing exception");
+                    return WeddingAppException.invalidInvitationCode(code);
+                });
 
-        if (invCodeOpt.isEmpty()) {
-            log.warn("Invalid invitation code: {}", code);
-            throw WeddingAppException.invalidInvitationCode(code);
-        }
-
-        InvitationCodeEntity invCode = invCodeOpt.get();
-
-        // Check if expired
-        if (invCode.getExpiryDate().isBefore(LocalDateTime.now())) {
+        if (invitationCode.getExpiryDate().isBefore(LocalDateTime.now())) {
             log.warn("Expired invitation code: {}", code);
             throw WeddingAppException.expiredInvitationCode(code);
         }
 
-        log.info("END - Validated invitation code for guest: {}", invCode.getGuest().getId());
-        return invCode.getGuest();
+        log.info("END - Validated invitation code for guest: {}", invitationCode.getGuest().getId());
+        return invitationCode.getGuest();
     }
 
     /**
@@ -141,34 +139,29 @@ public class InvitationCodeService {
     public InvitationValidationResponseDTO validateInvitationAndRetrieveRSVP(String code) {
         log.info("BEGIN - Validating invitation code and retrieving RSVP data: {}", code);
 
-        // Validate the code and get the primary guest
         GuestEntity primaryGuest = validateCode(code);
 
-        // Build primary guest DTO
         GuestResponseDTO primaryGuestDTO = buildGuestResponseDTO(primaryGuest);
 
-        // Check for existing RSVP
         RSVPResponseDTO existingRsvpDTO = null;
-        boolean hasExistingRsvp = primaryGuest.getRsvp() != null;
+        boolean hasExistingRsvp = Objects.nonNull(primaryGuest.getRsvp());
         
-        if (hasExistingRsvp) {
+        if (BooleanUtils.isTrue(hasExistingRsvp)) {
             log.info("Guest has an existing RSVP, retrieving RSVP data");
             existingRsvpDTO = buildRSVPResponseDTO(primaryGuest.getRsvp(), primaryGuest);
         }
 
-        // Determine guest type and gather family information
         InvitationValidationResponseDTO.GuestType guestType;
         FamilyGroupResponseDTO familyGroupDTO = null;
         List<FamilyMemberResponseDTO> familyMembersDTO = new ArrayList<>();
         FamilyGroupEntity familyGroup = primaryGuest.getFamilyGroup();
         
-        if (familyGroup != null && primaryGuest.getIsPrimaryContact()) {
-            // This is a family primary contact
+        if (Objects.nonNull(familyGroup) && BooleanUtils.isTrue(primaryGuest.getIsPrimaryContact())) {
+
             guestType = InvitationValidationResponseDTO.GuestType.FAMILY_PRIMARY;
             
-            log.info("Guest is primary contact for family group: {}", familyGroup.getGroupName());
-            
-            // Build family group DTO
+            log.info("Guest is primary contact for group: {}", familyGroup.getGroupName());
+
             familyGroupDTO = FamilyGroupResponseDTO.builder()
                     .id(familyGroup.getId())
                     .groupName(familyGroup.getGroupName())
@@ -177,20 +170,16 @@ public class InvitationCodeService {
                     .createdAt(familyGroup.getCreatedAt())
                     .build();
 
-            // Get family members with smart selection based on maxAttendees
-            if (familyGroup.getFamilyMembers() != null) {
+            if (CollectionUtils.isNotEmpty(familyGroup.getFamilyMembers())) {
                 familyMembersDTO = selectFamilyMembersForInvitation(familyGroup);
             }
             
-        } else if (primaryGuest.getPlusOneAllowed() != null && primaryGuest.getPlusOneAllowed()) {
-            // Solo guest with plus-one allowed
+        } else if (BooleanUtils.isTrue(primaryGuest.getPlusOneAllowed())) {
             guestType = InvitationValidationResponseDTO.GuestType.SOLO_WITH_PLUS_ONE;
         } else {
-            // Solo guest without plus-one
             guestType = InvitationValidationResponseDTO.GuestType.SOLO;
         }
 
-        // Build the complete response
         InvitationValidationResponseDTO response = InvitationValidationResponseDTO.builder()
                 .primaryGuest(primaryGuestDTO)
                 .existingRsvp(existingRsvpDTO)
@@ -212,8 +201,8 @@ public class InvitationCodeService {
                 .lastName(guest.getLastName())
                 .email(guest.getEmail())
                 .plusOneAllowed(guest.getPlusOneAllowed())
-                .hasRsvp(guest.getRsvp() != null)
-                .rsvpId(guest.getRsvp() != null ? guest.getRsvp().getId() : null)
+                .hasRsvp(Objects.nonNull(guest.getRsvp()))
+                .rsvpId(Objects.nonNull(guest.getRsvp()) ? guest.getRsvp().getId() : null)
                 .build();
     }
 
@@ -221,7 +210,7 @@ public class InvitationCodeService {
         return RSVPResponseDTO.builder()
                 .id(rsvp.getId())
                 .guestId(guest.getId())
-                .guestName(guest.getFirstName() + SPACE + guest.getLastName())
+                .guestName(StringUtils.joinWith(SPACE, guest.getFirstName(), guest.getLastName()))
                 .guestEmail(guest.getEmail())
                 .attending(rsvp.getAttending())
                 .dietaryRestrictions(rsvp.getDietaryRestrictions())
@@ -252,9 +241,8 @@ public class InvitationCodeService {
                 familyGroup.getGroupName(), familyGroup.getMaxAttendees());
 
         List<FamilyMemberEntity> allFamilyMembers = familyGroup.getFamilyMembers();
-        
-        // If no maxAttendees limit, return all members
-        if (familyGroup.getMaxAttendees() == null) {
+
+        if (Objects.isNull(familyGroup.getMaxAttendees())) {
             log.info("No maxAttendees limit, returning all {} family members", allFamilyMembers.size());
             return allFamilyMembers.stream()
                     .map(this::buildFamilyMemberResponseDTO)
@@ -271,11 +259,11 @@ public class InvitationCodeService {
 
         // Separate attending and non-attending members
         List<FamilyMemberEntity> attendingMembers = allFamilyMembers.stream()
-                .filter(member -> Boolean.TRUE.equals(member.getIsAttending()))
+                .filter(member -> BooleanUtils.isTrue(member.getIsAttending()))
                 .toList();
                 
         List<FamilyMemberEntity> nonAttendingMembers = allFamilyMembers.stream()
-                .filter(member -> !Boolean.TRUE.equals(member.getIsAttending()))
+                .filter(member -> BooleanUtils.isNotTrue(member.getIsAttending()))
                 .toList();
 
         // First, add all attending members (they should always be shown)
@@ -319,13 +307,12 @@ public class InvitationCodeService {
     public void markCodeAsUsed(String code) {
         log.info("BEGIN - Marking invitation code as used: {}", code);
 
-        Optional<InvitationCodeEntity> invCodeOpt = invitationDao.findInvitationByCode(code);
-        if (invCodeOpt.isEmpty()) {
-            log.warn("Cannot mark as used - code not found: {}", code);
-            throw WeddingAppException.invalidInvitationCode(code);
-        }
+        InvitationCodeEntity invCode = invitationDao.findInvitationByCode(code)
+                .orElseThrow(() -> {
+                    log.warn("Cannot mark as used - code not found: {}", code);
+                    return WeddingAppException.invalidInvitationCode(code);
+                });
 
-        InvitationCodeEntity invCode = invCodeOpt.get();
         invCode.setUsed(true);
         invitationDao.updateInvitationCode(invCode);
         log.info("END - Marked invitation code as used: {}", code);

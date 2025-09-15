@@ -72,7 +72,7 @@ public class FamilyMemberService {
      */
     private void validateMaxAttendeesLimit(List<RSVPRequestDTO.FamilyMemberRSVPRequest> familyMemberRequests, 
                                           FamilyGroupEntity familyGroup) {
-        int totalRequestedAttendees = 1; // primary guest
+        int totalRequestedAttendees = 1;
         totalRequestedAttendees += (int) familyMemberRequests.stream()
                 .filter(req -> BooleanUtils.isTrue(req.getIsAttending()))
                 .count();

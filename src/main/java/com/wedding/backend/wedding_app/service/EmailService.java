@@ -19,7 +19,11 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -55,14 +59,14 @@ public class EmailService {
      * @param guestEntity The guest entity
      */
     public void sendRSVPConfirmationEmail(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
-        sendRSVPConfirmationEmail(rsvpEntity, guestEntity, "en"); // Default to English
+        sendRSVPConfirmationEmail(rsvpEntity, guestEntity, LANGUAGE_ENGLISH); // Default to English
     }
 
     /**
      * Sends an RSVP confirmation email with language preference
      * @param rsvpEntity The RSVP entity containing all needed data
      * @param guestEntity The guest entity
-     * @param preferredLanguage The preferred language ("en" or "pt-BR")
+     * @param preferredLanguage The preferred language (LANGUAGE_ENGLISH or LANGUAGE_PORTUGUESE)
      */
     public void sendRSVPConfirmationEmail(RSVPEntity rsvpEntity, GuestEntity guestEntity, String preferredLanguage) {
         log.info("STARTED - Sending RSVP confirmation email to: {} in language: {}", 
@@ -73,14 +77,14 @@ public class EmailService {
             return;
         }
 
-        boolean isAttending = rsvpEntity.getAttending();
-        boolean isPortuguese = "pt-BR".equalsIgnoreCase(preferredLanguage);
+        boolean isAttending = BooleanUtils.isTrue(rsvpEntity.getAttending());
+        boolean isPortuguese = StringUtils.equalsIgnoreCase(LANGUAGE_PORTUGUESE, preferredLanguage);
 
+        String templatePath = null;
         try {
-            String templatePath;
             String subject;
             
-            if (isAttending) {
+            if (BooleanUtils.isTrue(isAttending)) {
                 templatePath = isPortuguese ? emailConfig.getAttendingTemplatePathPt() : emailConfig.getAttendingTemplatePath();
                 subject = isPortuguese ? emailConfig.getAttendingSubjectPt() : emailConfig.getAttendingSubject();
             } else {
@@ -88,7 +92,6 @@ public class EmailService {
                 subject = isPortuguese ? emailConfig.getNotAttendingSubjectPt() : emailConfig.getNotAttendingSubject();
             }
 
-            // Fallback to English if Portuguese templates are not configured
             if (StringUtils.isBlank(templatePath)) {
                 log.warn("Portuguese template not configured, falling back to English for language: {}", preferredLanguage);
                 templatePath = isAttending ? emailConfig.getAttendingTemplatePath() : emailConfig.getNotAttendingTemplatePath();
@@ -104,8 +107,7 @@ public class EmailService {
                     guestEntity.getEmail(), preferredLanguage);
 
         } catch (Exception e) {
-            log.error("Exception while sending RSVP email in language {}: ", preferredLanguage, e);
-            throw new RuntimeException(e);
+            throw handleEmailException("RSVP confirmation", templatePath, e);
         }
     }
 
@@ -121,22 +123,18 @@ public class EmailService {
         try {
             String templatePath = emailConfig.getAdminNotificationTemplatePath();
 
-            // Fallback to constant if config value is not set
             if (StringUtils.isBlank(templatePath)) {
                 templatePath = ADMIN_RSVP_NOTIFICATION;
             }
 
             String subject = emailConfig.getAdminNotificationSubject();
 
-            // Fallback to constant if config value is not set
             if (StringUtils.isBlank(subject)) {
                 subject = ADMIN_NOTIFICATION_SUBJECT;
             }
 
-            // Build the template model for both the triggering RSVP and the summary
             Map<String, Object> model = buildAdminNotificationModel(rsvpEntity, guestEntity, rsvpSummary);
 
-            // Process the template and send the email
             String htmlContent = processTemplate(templatePath, model);
             sendHtmlEmail(emailConfig.getAdminEmail(), subject, htmlContent);
             
@@ -144,7 +142,6 @@ public class EmailService {
 
         } catch (Exception e) {
             log.error("Exception while sending admin notification: ", e);
-            // Don't rethrow - admin notifications are non-critical
         }
     }
 
@@ -160,11 +157,11 @@ public class EmailService {
             GuestEntity triggerGuestEntity,
             RSVPSummaryDTO rsvpSummary) {
 
-        // First, add the triggering RSVP details
+
         Map<String, Object> model = buildRsvpEmailModel(triggerRsvpEntity, triggerGuestEntity);
 
         try {
-            // Add summary data to the model
+
             model.put(ADMIN_FIELD_TOTAL_RSVPS, rsvpSummary.getTotalRsvps());
             model.put(ADMIN_FIELD_TOTAL_ATTENDING, rsvpSummary.getTotalAttending());
             model.put(ADMIN_FIELD_TOTAL_NOT_ATTENDING, rsvpSummary.getTotalNotAttending());
@@ -173,14 +170,13 @@ public class EmailService {
             model.put(ADMIN_FIELD_NOT_ATTENDING_RSVPS, rsvpSummary.getNotAttendingRsvps());
             model.put(ADMIN_FIELD_LAST_UPDATED, rsvpSummary.getLastUpdated());
             
-            // Add attending family members data from the summary
+
             model.put(ADMIN_FIELD_ATTENDING_FAMILY_MEMBERS, rsvpSummary.getAttendingFamilyMembers());
             log.info("Added {} attending family members to admin notification model", 
-                    rsvpSummary.getAttendingFamilyMembers() != null ? rsvpSummary.getAttendingFamilyMembers().size() : 0);
+                    Objects.nonNull(rsvpSummary.getAttendingFamilyMembers()) ? rsvpSummary.getAttendingFamilyMembers().size() : 0);
             
         } catch (Exception e) {
             log.error("Error building RSVP summary for admin notification", e);
-            // Add error flag to model
             model.put(ADMIN_FIELD_SUMMARY_ERROR, true);
             model.put(ADMIN_FIELD_ERROR_MESSAGE, "Unable to process RSVP summary: " + e.getMessage());
         }
@@ -195,7 +191,7 @@ public class EmailService {
      * @return Map containing all template variables
      */
     private Map<String, Object> buildRsvpEmailModel(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
-        return buildRsvpEmailModel(rsvpEntity, guestEntity, "en"); // Default to English
+        return buildRsvpEmailModel(rsvpEntity, guestEntity, LANGUAGE_ENGLISH); // Default to English
     }
 
     /**
@@ -208,52 +204,38 @@ public class EmailService {
     private Map<String, Object> buildRsvpEmailModel(RSVPEntity rsvpEntity, GuestEntity guestEntity, String preferredLanguage) {
         Map<String, Object> model = new HashMap<>();
 
-        // Guest information
         model.put(EMAIL_FIELD_FIRST_NAME, guestEntity.getFirstName());
         model.put(EMAIL_FIELD_LAST_NAME, guestEntity.getLastName());
         model.put(EMAIL_FIELD_GUEST_EMAIL, guestEntity.getEmail());
 
-        // RSVP information
         model.put(EMAIL_FIELD_ATTENDING, rsvpEntity.getAttending());
         model.put(EMAIL_FIELD_DIETARY_RESTRICTIONS, rsvpEntity.getDietaryRestrictions());
         model.put(EMAIL_FIELD_RSVP_ID, rsvpEntity.getId());
 
-        // Add submission date formatted for display
-        if (rsvpEntity.getSubmittedAt() != null) {
+        if (Objects.nonNull(rsvpEntity.getSubmittedAt())) {
             model.put(EMAIL_FIELD_SUBMISSION_DATE,
                   rsvpEntity.getSubmittedAt().format(DATE_FORMATTER));
         }
 
-        // Add family information if this is a family primary contact
         FamilyGroupEntity familyGroup = guestEntity.getFamilyGroup();
-        boolean isFamilyRsvp = familyGroup != null && guestEntity.getIsPrimaryContact();
+        boolean isFamilyRsvp = Objects.nonNull(familyGroup) && BooleanUtils.isTrue(guestEntity.getIsPrimaryContact());
         model.put(EMAIL_FIELD_IS_FAMILY_RSVP, isFamilyRsvp);
         
-        if (isFamilyRsvp) {
+        if (BooleanUtils.isTrue(isFamilyRsvp)) {
             log.info("Adding family information to email model for group: {}", familyGroup.getGroupName());
             
             model.put(EMAIL_FIELD_FAMILY_GROUP_NAME, familyGroup.getGroupName());
-            
-            // Get family members and their RSVP status
+
             List<FamilyMemberEntity> familyMembers = familyGroup.getFamilyMembers();
-            if (familyMembers != null && !familyMembers.isEmpty()) {
+            if (Objects.nonNull(familyMembers) && CollectionUtils.isNotEmpty(familyMembers)) {
                 List<Map<String, Object>> familyMemberData = familyMembers.stream()
-                    .map(member -> {
-                        Map<String, Object> memberData = new HashMap<>();
-                        memberData.put("firstName", member.getFirstName());
-                        memberData.put("lastName", member.getLastName());
-                        memberData.put("ageGroup", member.getAgeGroup());
-                        memberData.put("isAttending", member.getIsAttending());
-                        memberData.put("dietaryRestrictions", member.getDietaryRestrictions());
-                        return memberData;
-                    })
-                    .collect(Collectors.toList());
+                        .map(this::buildFamilyMemberMap)
+                        .collect(Collectors.toList());
                 
                 model.put(EMAIL_FIELD_FAMILY_MEMBERS, familyMemberData);
                 
-                // Calculate family attendance counts
                 long attendingCount = familyMembers.stream()
-                    .filter(member -> Boolean.TRUE.equals(member.getIsAttending()))
+                    .filter(member -> BooleanUtils.isTrue(member.getIsAttending()))
                     .count();
                 
                 model.put(EMAIL_FIELD_FAMILY_ATTENDING_COUNT, attendingCount);
@@ -327,9 +309,9 @@ public class EmailService {
             return;
         }
 
+        String templatePath = null;
         try {
-
-            String templatePath = emailConfig.getDonationConfirmationTemplatePath();
+            templatePath = emailConfig.getDonationConfirmationTemplatePath();
             String subject = emailConfig.getDonationConfirmationSubject();
 
             Map<String, Object> model = buildDonationConfirmationEmailModel(donation);
@@ -339,18 +321,8 @@ public class EmailService {
 
             log.info("COMPLETED - Donation confirmation email sent successfully to: {}", donation.getDonorEmail());
 
-        } catch (IOException e) {
-            log.error("Template not found for donation confirmation email", e);
-            throw WeddingAppException.internalError("Email template not found: " + e.getMessage());
-        } catch (TemplateException e) {
-            log.error("Template processing error for donation confirmation email", e);
-            throw WeddingAppException.internalError("Email template processing failed: " + e.getMessage());
-        } catch (ResendException e) {
-            log.error("Failed to send donation confirmation email to: {}", donation.getDonorEmail(), e);
-            throw WeddingAppException.internalError("Failed to send email: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Unexpected error sending donation confirmation email", e);
-            throw WeddingAppException.internalError("Unexpected error: " + e.getMessage());
+            throw handleEmailException("donation confirmation", templatePath, e);
         }
     }
 
@@ -361,20 +333,19 @@ public class EmailService {
     public void sendDonationThankYouEmail(DonationEntity donation) {
         log.info("STARTED - Sending donation thank you email to: {}", donation.getDonorEmail());
 
-        // Validate email
         if (StringUtils.isBlank(donation.getDonorEmail())) {
             log.warn("Cannot send thank you email - donor email is invalid");
             return;
         }
 
-        if (donation.getStatus() != DonationStatus.CONFIRMED) {
+        if (BooleanUtils.isFalse(Objects.equals(donation.getStatus(), DonationStatus.CONFIRMED))) {
             log.warn("Cannot send thank you email - donation is not confirmed");
             throw WeddingAppException.validationError("Cannot send thank you for unconfirmed donation");
         }
 
+        String templatePath = null;
         try {
-
-            String templatePath = emailConfig.getDonationThankYouTemplatePath();
+            templatePath = emailConfig.getDonationThankYouTemplatePath();
 
             if (StringUtils.isBlank(templatePath)) {
                 templatePath = DONATION_THANK_YOU_TEMPLATE;
@@ -393,18 +364,8 @@ public class EmailService {
 
             log.info("COMPLETED - Thank you email sent successfully to: {}", donation.getDonorEmail());
 
-        } catch (IOException e) {
-            log.error("Template not found for donation thank you email", e);
-            throw WeddingAppException.internalError("Email template not found: " + e.getMessage());
-        } catch (TemplateException e) {
-            log.error("Template processing error for donation thank you email", e);
-            throw WeddingAppException.internalError("Email template processing failed: " + e.getMessage());
-        } catch (ResendException e) {
-            log.error("Failed to send thank you email to: {}", donation.getDonorEmail(), e);
-            throw WeddingAppException.internalError("Failed to send email: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Unexpected error sending donation thank you email", e);
-            throw WeddingAppException.internalError("Unexpected error: " + e.getMessage());
+            throw handleEmailException("donation thank you", templatePath, e);
         }
     }
 
@@ -416,28 +377,23 @@ public class EmailService {
     private Map<String, Object> buildDonationConfirmationEmailModel(DonationEntity donation) {
         Map<String, Object> model = new HashMap<>();
 
-        // Donor information
         model.put(EMAIL_FIELD_DONOR_NAME, donation.getDonorName());
         model.put(EMAIL_FIELD_DONOR_EMAIL, donation.getDonorEmail());
         model.put(EMAIL_FIELD_DONOR_PHONE, donation.getDonorPhone());
 
-        // Donation information
         model.put(EMAIL_FIELD_DONATION_AMOUNT, donation.getAmount());
         model.put(EMAIL_FIELD_PAYMENT_METHOD, donation.getPaymentMethod().getDisplayName());
         model.put(EMAIL_FIELD_PAYMENT_REFERENCE, donation.getPaymentReference());
         model.put(EMAIL_FIELD_DONATION_MESSAGE, donation.getMessage());
         model.put(EMAIL_FIELD_DONATION_ID, donation.getId());
 
-        // Add donation date formatted for display
-        if (donation.getDonationDate() != null) {
+        if (Objects.nonNull(donation.getDonationDate())) {
             model.put(EMAIL_FIELD_DONATION_DATE,
                     donation.getDonationDate().format(DATE_FORMATTER));
         }
 
-        // Add status information
         model.put(EMAIL_FIELD_DONATION_STATUS, donation.getStatus().getDisplayName());
 
-        // Add boolean flags for template conditionals
         model.put(EMAIL_FIELD_HAS_PAYMENT_REFERENCE, StringUtils.isNotBlank(donation.getPaymentReference()));
         model.put(EMAIL_FIELD_HAS_DONATION_MESSAGE, StringUtils.isNotBlank(donation.getMessage()));
         model.put(EMAIL_FIELD_HAS_PHONE, StringUtils.isNotBlank(donation.getDonorPhone()));
@@ -453,28 +409,24 @@ public class EmailService {
     private Map<String, Object> buildDonationThankYouEmailModel(DonationEntity donation) {
         Map<String, Object> model = new HashMap<>();
 
-        // Donor information
         model.put(EMAIL_FIELD_DONOR_NAME, donation.getDonorName());
         model.put(EMAIL_FIELD_DONOR_EMAIL, donation.getDonorEmail());
 
-        // Donation information
         model.put(EMAIL_FIELD_DONATION_AMOUNT, donation.getAmount());
         model.put(EMAIL_FIELD_PAYMENT_METHOD, donation.getPaymentMethod().getDisplayName());
         model.put(EMAIL_FIELD_DONATION_MESSAGE, donation.getMessage());
         model.put(EMAIL_FIELD_DONATION_ID, donation.getId());
 
-        // Add donation and confirmation dates formatted for display
-        if (donation.getDonationDate() != null) {
+        if (Objects.nonNull(donation.getDonationDate())) {
             model.put(EMAIL_FIELD_DONATION_DATE,
                     donation.getDonationDate().format(DATE_FORMATTER));
         }
 
-        if (donation.getConfirmedDate() != null) {
+        if (Objects.nonNull(donation.getConfirmedDate())) {
             model.put(EMAIL_FIELD_CONFIRMED_DATE,
                     donation.getConfirmedDate().format(DATE_FORMATTER));
         }
 
-        // Add boolean flags for template conditionals
         model.put(EMAIL_FIELD_HAS_DONATION_MESSAGE, StringUtils.isNotBlank(donation.getMessage()));
         
         return model;
@@ -487,14 +439,14 @@ public class EmailService {
      */
     @Async("emailTaskExecutor")
     public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity) {
-        sendGuestConfirmationEmailAsync(rsvpEntity, guestEntity, "en"); // Default to English
+        sendGuestConfirmationEmailAsync(rsvpEntity, guestEntity, LANGUAGE_ENGLISH); // Default to English
     }
 
     /**
      * Send a confirmation email to the guest asynchronously with language preference
      * @param rsvpEntity The RSVP entity
      * @param guestEntity The guest entity
-     * @param preferredLanguage The preferred language ("en" or "pt-BR")
+     * @param preferredLanguage The preferred language (LANGUAGE_ENGLISH or LANGUAGE_PORTUGUESE)
      */
     @Async("emailTaskExecutor")
     public void sendGuestConfirmationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity, String preferredLanguage) {
@@ -519,7 +471,7 @@ public class EmailService {
     @Async("emailTaskExecutor")
     public void sendAdminNotificationEmailAsync(RSVPEntity rsvpEntity, GuestEntity guestEntity, RSVPSummaryDTO rsvpSummary) {
         try {
-            if (!emailConfig.isSendAdminNotifications() ||
+            if (BooleanUtils.isNotTrue(emailConfig.isSendAdminNotifications()) ||
                 StringUtils.isBlank(emailConfig.getAdminEmail())) {
                 log.info("Admin notifications are disabled or no admin email configured");
                 return;
@@ -562,4 +514,38 @@ public class EmailService {
             log.error("Failed to send donation thank you email to: {}", donation.getDonorEmail(), e);
         }
     }
+
+    private Map<String, Object> buildFamilyMemberMap(FamilyMemberEntity member) {
+        Map<String, Object> memberData = new HashMap<>();
+        memberData.put(FAMILY_MEMBER_FIRST_NAME, member.getFirstName());
+        memberData.put(FAMILY_MEMBER_LAST_NAME, member.getLastName());
+        memberData.put(FAMILY_MEMBER_AGE_GROUP, member.getAgeGroup());
+        memberData.put(FAMILY_MEMBER_IS_ATTENDING, member.getIsAttending());
+        memberData.put(FAMILY_MEMBER_DIETARY_RESTRICTIONS, member.getDietaryRestrictions());
+        return memberData;
+    }
+
+    /**
+     * Centralized exception handling for email operations
+     * @param operation The email operation being performed (e.g., "RSVP confirmation", "donation thank you")
+     * @param templatePath The template path being used (can be null)
+     * @param exception The exception that occurred
+     * @return WeddingAppException to be thrown
+     */
+    private WeddingAppException handleEmailException(String operation, String templatePath, Exception exception) {
+        if (exception instanceof IOException) {
+            log.error("Template not found for {} email: {}", operation, templatePath, exception);
+            return WeddingAppException.emailTemplateError(templatePath, exception);
+        } else if (exception instanceof TemplateException) {
+            log.error("Template processing error for {} email: {}", operation, templatePath, exception);
+            return WeddingAppException.emailTemplateError(templatePath, exception);
+        } else if (exception instanceof ResendException) {
+            log.error("Failed to send {} email via Resend API", operation, exception);
+            return WeddingAppException.emailSendError(operation, exception);
+        } else {
+            log.error("Unexpected error during {} email operation", operation, exception);
+            return WeddingAppException.emailSendError(operation, exception.getMessage());
+        }
+    }
+
 }

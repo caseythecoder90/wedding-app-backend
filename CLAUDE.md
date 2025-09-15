@@ -19,6 +19,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Logging: Use SLF4J (log.info) with BEGIN/END markers
 - Naming: CamelCase for variables, PascalCase for classes
 - Document APIs with Swagger annotations (@Tag, custom api doc annotations)
+- **ALWAYS use utility classes**: Objects, BooleanUtils, StringUtils, IOUtils, CollectionUtils, etc.
+- **ALWAYS use constants**: Add string literals (except log statements) to WeddingServiceConstants
+- **REST API controllers**: Always create custom annotations for controller documentation to reduce clutter while maintaining professional documentation
 
 ## System Architecture Summary
 
@@ -45,3 +48,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - SOLO: Single guest, no plus-one
 - SOLO_WITH_PLUS_ONE: Single guest with plus-one allowed  
 - FAMILY_PRIMARY: Primary contact for family group with multiple members
+- For REST API controllers, always create custom annotations for the controllers documentation. This helps reduce clutter in the code while maintaining professional documentation

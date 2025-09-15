@@ -136,4 +136,20 @@ public class WeddingAppException extends RuntimeException {
         return new WeddingAppException("INVALID_FAMILY_GROUP_SIZE", 
                 String.format("Invalid family group size: %d", size));
     }
+    
+    // Email-related exceptions
+    public static WeddingAppException emailSendError(String operation, String details) {
+        return new WeddingAppException("EMAIL_SEND_ERROR", 
+                String.format("Failed to send %s email: %s", operation, details));
+    }
+    
+    public static WeddingAppException emailSendError(String operation, Throwable cause) {
+        return new WeddingAppException("EMAIL_SEND_ERROR", cause, 
+                String.format("Failed to send %s email", operation));
+    }
+    
+    public static WeddingAppException emailTemplateError(String templateName, Throwable cause) {
+        return new WeddingAppException("EMAIL_TEMPLATE_ERROR", cause, 
+                String.format("Error processing email template: %s", templateName));
+    }
 }

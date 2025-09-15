@@ -45,27 +45,6 @@ public class WeddingServiceConstants {
     public static final String FAMILY_MEMBER_IS_ATTENDING = "isAttending";
     public static final String FAMILY_MEMBER_DIETARY_RESTRICTIONS = "dietaryRestrictions";
 
-    // Email service log messages
-    public static final String EMAIL_LOG_STARTED_RSVP = "STARTED - Sending RSVP confirmation email to: {}";
-    public static final String EMAIL_LOG_COMPLETED_RSVP = "COMPLETED - RSVP confirmation email sent successfully to: {}";
-    public static final String EMAIL_LOG_STARTED_ADMIN = "STARTED - Sending admin notification with RSVP summary";
-    public static final String EMAIL_LOG_COMPLETED_ADMIN = "COMPLETED - Admin notification sent successfully";
-    public static final String EMAIL_LOG_STARTED_DONATION = "STARTED - Sending donation confirmation email to: {}";
-    public static final String EMAIL_LOG_COMPLETED_DONATION = "COMPLETED - Donation confirmation email sent successfully to: {}";
-    public static final String EMAIL_LOG_STARTED_THANK_YOU = "STARTED - Sending donation thank you email to: {}";
-    public static final String EMAIL_LOG_COMPLETED_THANK_YOU = "COMPLETED - Thank you email sent successfully to: {}";
-    public static final String EMAIL_LOG_INVALID_EMAIL = "Cannot send email - guest email is invalid";
-    public static final String EMAIL_LOG_INVALID_DONATION_EMAIL = "Cannot send donation confirmation email - donor email is invalid";
-    public static final String EMAIL_LOG_INVALID_THANK_YOU_EMAIL = "Cannot send thank you email - donor email is invalid";
-    public static final String EMAIL_LOG_UNCONFIRMED_DONATION = "Cannot send thank you email - donation is not confirmed";
-    public static final String EMAIL_LOG_CREATING_EMAIL = "Creating and sending email to: {}";
-    public static final String EMAIL_LOG_EMAIL_SENT = "Email sent successfully to: {}";
-    public static final String EMAIL_LOG_FAMILY_INFO = "Adding family information to email model for group: {}";
-    public static final String EMAIL_LOG_ERROR_RSVP_SUMMARY = "Error building RSVP summary for admin notification";
-    public static final String EMAIL_LOG_ERROR_RSVP_EMAIL = "Exception while sending RSVP email: ";
-    public static final String EMAIL_LOG_ERROR_ADMIN_EMAIL = "Exception while sending admin notification: ";
-    public static final String EMAIL_LOG_ERROR_EMAIL_OPERATION = "Error during email operation: {}";
-
     // Admin notification model fields
     public static final String ADMIN_FIELD_TOTAL_RSVPS = "totalRsvps";
     public static final String ADMIN_FIELD_TOTAL_ATTENDING = "totalAttending";
@@ -128,5 +107,16 @@ public class WeddingServiceConstants {
     public static final String EMAIL_FIELD_HAS_PAYMENT_REFERENCE = "hasPaymentReference";
     public static final String EMAIL_FIELD_HAS_DONATION_MESSAGE = "hasDonationMessage";
     public static final String EMAIL_FIELD_HAS_PHONE = "hasPhone";
+
+    // Common strings for business logic
+    public static final String NONE = "none";
+
+    // Language constants
+    public static final String LANGUAGE_ENGLISH = "en";
+    public static final String LANGUAGE_PORTUGUESE = "pt-BR";
+
+    // QR Code constants
+    public static final String QR_CODE_DEFAULT_FILENAME = "qrcode";
+    public static final String QR_CODE_ATTACHMENT_HEADER = "attachment";
 
 }

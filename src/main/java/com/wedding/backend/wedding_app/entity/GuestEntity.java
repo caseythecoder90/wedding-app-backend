@@ -24,7 +24,7 @@ import java.util.List;
 @Entity
 @Table(name = "guests")
 @Data
-@ToString(exclude = {"familyGroup"})
+@ToString(exclude = {"familyGroup", "rsvp", "invitationCodes"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

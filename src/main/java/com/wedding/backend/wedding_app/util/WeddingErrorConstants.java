@@ -38,4 +38,6 @@ public final class WeddingErrorConstants {
     public static final String EXPIRED_INVITATION_CODE = "EXPIRED_INVITATION_CODE";
     public static final String USED_INVITATION_CODE = "USED_INVITATION_CODE";
     public static final String INVITATION_CODE_CREATION_ERROR = "INVITATION_CODE_CREATION_ERROR";
+
+    public static final String FAMILY_MEMBER_GUEST_NOT_ELIGIBLE = "familyMembers - guest not in family group and not plus-one eligible";
 }
