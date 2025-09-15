@@ -6,9 +6,7 @@ import com.wedding.backend.wedding_app.dto.DonationResponseDTO;
 import com.wedding.backend.wedding_app.entity.DonationEntity;
 import com.wedding.backend.wedding_app.entity.GuestEntity;
 import com.wedding.backend.wedding_app.enums.DonationStatus;
-import com.wedding.backend.wedding_app.enums.PaymentMethod;
 import com.wedding.backend.wedding_app.exception.WeddingAppException;
-import com.wedding.backend.wedding_app.service.GuestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +31,6 @@ public class DonationService {
     public DonationResponseDTO submitDonation(DonationRequestDTO request) {
         log.info("BEGIN - Processing donation submission from: {}", request.getDonorName());
 
-        // Look up guest if guestId is provided
         GuestEntity guest = null;
         if (request.getGuestId() != null) {
             try {

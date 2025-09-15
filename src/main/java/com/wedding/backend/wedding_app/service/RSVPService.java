@@ -16,9 +16,12 @@ import com.wedding.backend.wedding_app.repository.GuestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -133,26 +136,28 @@ public class RSVPService {
                 request.getAttending(),
                 request.getDietaryRestrictions());
 
-        // Process family member RSVPs - this handles both family groups and plus-ones as family members
-        if (CollectionUtils.isNotEmpty(request.getFamilyMembers())) {
-            log.info("Processing family member RSVPs for {} members", request.getFamilyMembers().size());
-            
-            FamilyGroupEntity familyGroup = guest.getFamilyGroup();
-            if (familyGroup == null) {
-                // For plus-one scenarios, create a temporary family group if needed
-                if (guest.getPlusOneAllowed() && request.getFamilyMembers().size() == 1) {
-                    log.info("Processing plus-one as family member for solo guest");
-                    familyGroup = createTemporaryFamilyGroupForPlusOne(guest);
-                } else {
-                    throw WeddingAppException.invalidParameter(FAMILY_MEMBER_GUEST_NOT_ELIGIBLE);
-                }
+        // Handle family member attendance based on primary guest's status
+        FamilyGroupEntity familyGroup = guest.getFamilyGroup();
+        if (Objects.nonNull(familyGroup)) {
+            if (BooleanUtils.isFalse(request.getAttending())) {
+                log.info("Primary guest not attending - resetting all family members for group: {}", familyGroup.getGroupName());
+                familyMemberService.resetAllFamilyMembersAttendance(familyGroup);
+            } else if (CollectionUtils.isNotEmpty(request.getFamilyMembers())) {
+                log.info("Primary guest attending - processing family member RSVPs for {} members", request.getFamilyMembers().size());
+                familyMemberService.processFamilyMemberRSVPs(request.getFamilyMembers(), familyGroup);
             }
-            
-            familyMemberService.processFamilyMemberRSVPs(request.getFamilyMembers(), familyGroup);
+        } else if (CollectionUtils.isNotEmpty(request.getFamilyMembers()) && BooleanUtils.isTrue(request.getAttending())) {
+            if (guest.getPlusOneAllowed() && request.getFamilyMembers().size() == 1) {
+                log.info("Processing plus-one as family member for solo guest");
+                familyGroup = createTemporaryFamilyGroupForPlusOne(guest);
+                familyMemberService.processFamilyMemberRSVPs(request.getFamilyMembers(), familyGroup);
+            } else {
+                throw WeddingAppException.invalidParameter(FAMILY_MEMBER_GUEST_NOT_ELIGIBLE);
+            }
         }
 
-        // If email was provided in the request, update the guest email
-        if (StringUtils.isNotBlank(request.getEmail())) {
+        if (StringUtils.isNotBlank(request.getEmail()) &&
+                BooleanUtils.isFalse(StringUtils.equalsIgnoreCase(guest.getEmail(), request.getEmail()))) {
             log.info("Updating email for guest ID: {}", request.getGuestId());
             guest.setEmail(request.getEmail());
             guestDao.updateGuest(guest);
