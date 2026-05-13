@@ -29,7 +29,7 @@ spring:
 
 # Resend API Configuration
 resend:
-  api-key: ${RESEND_API_KEY:re_et1nN24p_G9fjUi7Jx2dZzDrGu71QKdad}
+  api-key: ${RESEND_API_KEY}
 
 # Wedding API properties
 wedding:
